@@ -24,9 +24,20 @@ def all_models() -> dict[str, type[ContractModel]]:
 
 def main() -> None:
     out = Path("schemas")
-    out.mkdir(exist_ok=True)
-    for name, model in sorted(all_models().items()):
-        (out / f"{name}.schema.json").write_text(json.dumps(model.model_json_schema(), indent=2))
+    try:
+        out.mkdir(exist_ok=True)
+        for name, model in sorted(all_models().items()):
+            (out / f"{name}.schema.json").write_text(json.dumps(model.model_json_schema(), indent=2))
+    except OSError as e:
+        import sys
+
+        print(
+            f"Error: could not write schemas into {out}/ ({e.strerror or e}).\n"
+            "Likely cause: the directory is not writable from here.\n"
+            "Next: run from a writable checkout directory, or pass a writable CWD.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     print(f"exported {len(all_models())} schemas to {out}/")
 
 
