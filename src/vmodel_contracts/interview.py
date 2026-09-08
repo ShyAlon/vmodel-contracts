@@ -68,6 +68,11 @@ class IntentModel(ContractModel):
         default_factory=list, description="Web APIs / services the app consumes (allowed; app itself stays a web app)."
     )
     constraints: list[str] = Field(default_factory=list, description="Budget, compliance, platform, team constraints.")
+    assumptions: list[str] = Field(
+        default_factory=list,
+        description="Things the founder asserted without evidence ('these sources can't conflict'). "
+        "Validated later, never built as needs.",
+    )
     open_questions: list[str] = Field(
         default_factory=list,
         description="Questions the founder could not answer. Carried into the punch list, never silently resolved.",
