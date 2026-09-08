@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vmodel-contracts"
+description = "Versioned inter-module contracts for the V-model spec generator. Every module pins an exact release of this package; nothing crosses a module boundary untyped."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary" }
+authors = [{ name = "Shy Alon" }]
+dynamic = ["version"]
+dependencies = ["pydantic>=2.6,<3"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+vmodel-contracts-export = "vmodel_contracts.export_schema:main"
+
+[tool.hatch.version]
+path = "src/vmodel_contracts/version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vmodel_contracts"]
