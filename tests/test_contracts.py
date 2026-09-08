@@ -3,6 +3,7 @@ import json
 
 from vmodel_contracts import (
     CONTRACT_VERSION,
+    RequirementKind,
     IntakeSubmission,
     IntentModel,
     Requirement,
@@ -40,6 +41,7 @@ def test_requirement_round_trip():
         title="Users can book a lesson",
         statement="An end user books a surf lesson slot.",
         priority=Priority.MUST,
+        kind=RequirementKind.FUNCTIONAL,
         acceptance=[AcceptanceCriterion(criterion_id="AC-1", statement="Booking returns a confirmation id")],
         need_ids=["N-1"],
         intent_fields=["in_scope"],
@@ -64,3 +66,57 @@ def test_every_model_exports_schema():
     for name, m in models.items():
         schema = m.model_json_schema()
         assert "contract_version" in json.dumps(schema) or name == "ContractModel"
+
+
+# ---- v0.2.0: SE rigor + version compatibility ----
+
+def test_intent_model_carries_classified_stakeholder_needs():
+    from vmodel_contracts import IntentModel, IntentNeed, RequirementKind
+
+    m = IntentModel(
+        session_id="s", problem_statement="p", target_users=["u"],
+        core_value_proposition="v",
+        stakeholder_needs=[
+            IntentNeed(need_id="SN-1", statement="Founders need specs before code", kind=RequirementKind.FUNCTIONAL, source_turns=[2]),
+            IntentNeed(need_id="SN-2", statement="Founder data must stay secure", kind=RequirementKind.NON_FUNCTIONAL, source_turns=[12]),
+        ],
+        in_scope=["interviews"], out_of_scope=["codegen"], source_turns={},
+    )
+    kinds = {n.need_id: n.kind for n in m.stakeholder_needs}
+    assert kinds == {"SN-1": RequirementKind.FUNCTIONAL, "SN-2": RequirementKind.NON_FUNCTIONAL}
+
+
+def test_intent_model_requires_at_least_one_need():
+    import pytest
+    from pydantic import ValidationError
+
+    from vmodel_contracts import IntentModel
+
+    with pytest.raises(ValidationError):
+        IntentModel(session_id="s", problem_statement="p", target_users=["u"],
+                    core_value_proposition="v", stakeholder_needs=[],
+                    in_scope=["x"], out_of_scope=["y"], source_turns={})
+
+
+def test_version_check_rejects_wrong_minor_loudly():
+    import pytest
+
+    from vmodel_contracts import ContractVersionMismatch, check_compatible
+
+    check_compatible({"contract_version": CONTRACT_VERSION})  # same: fine
+    check_compatible({"contract_version": CONTRACT_VERSION + ".1"})  # patch drift: fine
+    with pytest.raises(ContractVersionMismatch) as ei:
+        check_compatible({"contract_version": "0.1.0"})
+    assert "0.1.0" in str(ei.value)
+    with pytest.raises(ContractVersionMismatch):
+        check_compatible({})  # pre-versioning payload
+
+
+def test_requirement_kind_round_trip():
+    from vmodel_contracts import RequirementKind
+
+    r = Requirement(requirement_id="R-2", title="Data encrypted", statement="User data shall be encrypted at rest.",
+                    priority=Priority.MUST, kind=RequirementKind.NON_FUNCTIONAL,
+                    acceptance=[AcceptanceCriterion(criterion_id="AC-1", statement="AES-256 at rest")],
+                    need_ids=["N-1"], intent_fields=["stakeholder_needs"])
+    assert Requirement.model_validate(r.model_dump(mode="json")).kind == RequirementKind.NON_FUNCTIONAL
