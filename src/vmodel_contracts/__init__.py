@@ -6,9 +6,10 @@ release of this package.
 """
 from .version import CONTRACT_VERSION
 from .intake import AppArchetype, IntakeSubmission, ScopeVerdict
-from .interview import InterviewTurn, InterviewTranscript, IntentModel
+from .compat import ContractVersionMismatch, check_compatible
+from .interview import IntentNeed, InterviewTurn, InterviewTranscript, IntentModel
 from .needs import StakeholderNeed, StakeholderNeedsSet
-from .requirements import AcceptanceCriterion, Priority, Requirement, RequirementSet
+from .requirements import AcceptanceCriterion, Priority, Requirement, RequirementKind, RequirementSet
 from .architecture import ArchitectureDecision, ArchitectureOverview, ComponentSpec
 from .spec import (
     BuildMilestone,
@@ -32,18 +33,18 @@ from .delivery import DeliveryBundle, HandoffFormat, RunLink, RunState, RunStatu
 from .telemetry import RunCostReport, StageTokenUsage
 
 __all__ = [
-    "CONTRACT_VERSION",
+    "CONTRACT_VERSION", "check_compatible", "ContractVersionMismatch",
     "AppArchetype",
     "IntakeSubmission",
     "ScopeVerdict",
     "InterviewTurn",
     "InterviewTranscript",
-    "IntentModel",
+    "IntentModel", "IntentNeed",
     "StakeholderNeed",
     "StakeholderNeedsSet",
     "AcceptanceCriterion",
     "Priority",
-    "Requirement",
+    "Requirement", "RequirementKind",
     "RequirementSet",
     "ArchitectureDecision",
     "ArchitectureOverview",
