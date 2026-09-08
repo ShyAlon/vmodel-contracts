@@ -7,7 +7,7 @@ release of this package.
 from .version import CONTRACT_VERSION
 from .intake import AppArchetype, IntakeSubmission, ScopeVerdict
 from .compat import ContractVersionMismatch, check_compatible
-from .interview import IntentNeed, InterviewTurn, InterviewTranscript, IntentModel
+from .interview import Assumption, IntentNeed, InterviewTurn, InterviewTranscript, IntentModel, ScopeExclusion
 from .needs import StakeholderNeed, StakeholderNeedsSet
 from .requirements import AcceptanceCriterion, Priority, Requirement, RequirementKind, RequirementSet
 from .architecture import ArchitectureDecision, ArchitectureOverview, ComponentSpec
@@ -39,7 +39,9 @@ __all__ = [
     "ScopeVerdict",
     "InterviewTurn",
     "InterviewTranscript",
-    "IntentModel", "IntentNeed",
+    "IntentModel",
+    "Assumption",
+    "ScopeExclusion", "IntentNeed",
     "StakeholderNeed",
     "StakeholderNeedsSet",
     "AcceptanceCriterion",

@@ -46,6 +46,30 @@ class IntentNeed(ContractModel):
     source_turns: list[int] = Field(default_factory=list, description="Transcript turns this need came from.")
 
 
+class Assumption(ContractModel):
+    """Something the founder ASSERTED without evidence, captured - never built.
+    source_turns is load-bearing: an assumption that cannot be pointed at in
+    THIS session's transcript is a fabrication and must be dropped (run-3
+    defect: prompt-example echoes surfaced as founder assertions)."""
+
+    statement: str = Field(description="The assertion, short, founder-flavored.")
+    source_turns: list[int] = Field(
+        min_length=1, description="Transcript turn indexes where the founder actually asserted this."
+    )
+
+
+class ScopeExclusion(ContractModel):
+    """One out-of-scope item WITH provenance. explicit=True: the founder said
+    'not this' in the transcript. explicit=False: inferred candidate - must be
+    rendered AS a candidate for confirmation, never as settled boundary."""
+
+    item: str = Field(description="The exclusion.")
+    source_turns: list[int] = Field(
+        default_factory=list, description="Transcript turns backing it; empty only for clearly-labeled candidates."
+    )
+    explicit: bool = Field(description="True only if the founder explicitly excluded this in the conversation.")
+
+
 class IntentModel(ContractModel):
     """The distilled 'what are we actually building' the spec hangs off.
 
@@ -70,8 +94,28 @@ class IntentModel(ContractModel):
     constraints: list[str] = Field(default_factory=list, description="Budget, compliance, platform, team constraints.")
     assumptions: list[str] = Field(
         default_factory=list,
-        description="Things the founder asserted without evidence ('these sources can't conflict'). "
+        description="DEPRECATED since 0.4.0 - use assumption_items (grounded, per-item source_turns). "
+        "Kept so 0.3.x payloads still parse; new producers leave it empty.",
+    )
+    assumption_items: list[Assumption] = Field(
+        default_factory=list,
+        description="Founder assertions without evidence, each grounded in transcript turns. "
         "Validated later, never built as needs.",
+    )
+    scope_exclusions: list[ScopeExclusion] = Field(
+        default_factory=list,
+        description="Out-of-scope WITH provenance (explicit vs inferred candidate). "
+        "out_of_scope stays the flat rendered list; this is the auditable form.",
+    )
+    done_criteria: list[str] = Field(
+        default_factory=list,
+        description="Founder's acceptance conditions ('I'll know it works when...'). Not needs - "
+        "they feed validation downstream. Turns tracked in source_turns['done_criteria'].",
+    )
+    operational_concepts: list[str] = Field(
+        default_factory=list,
+        description="Operational/support processes the founder described (e.g. 'support team handles "
+        "failures'). Not system requirements - captured so they are not lost or misclassified as NFRs.",
     )
     open_questions: list[str] = Field(
         default_factory=list,
