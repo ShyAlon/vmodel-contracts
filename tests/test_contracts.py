@@ -120,3 +120,16 @@ def test_requirement_kind_round_trip():
                     acceptance=[AcceptanceCriterion(criterion_id="AC-1", statement="AES-256 at rest")],
                     need_ids=["N-1"], intent_fields=["stakeholder_needs"])
     assert Requirement.model_validate(r.model_dump(mode="json")).kind == RequirementKind.NON_FUNCTIONAL
+
+
+def test_intent_model_carries_assumptions_v030():
+    from vmodel_contracts import IntentModel, IntentNeed, RequirementKind
+
+    m = IntentModel(
+        session_id="s", problem_statement="p", target_users=["u"], core_value_proposition="v",
+        stakeholder_needs=[IntentNeed(need_id="SN-1", statement="x", kind=RequirementKind.FUNCTIONAL)],
+        in_scope=["a"], out_of_scope=["b"],
+        assumptions=["internal and external data cannot conflict"],
+        source_turns={},
+    )
+    assert m.assumptions == ["internal and external data cannot conflict"]
