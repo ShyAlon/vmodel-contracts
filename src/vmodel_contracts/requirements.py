@@ -14,6 +14,14 @@ class Priority(str, Enum):
     COULD = "could"
 
 
+class RequirementKind(str, Enum):
+    """The classic SE split. Also classifies stakeholder NEEDS at intent time:
+    a need is the kind of requirement it will become. Non-functional covers
+    security, performance, privacy, usability, auditability, cost, ..."""
+    FUNCTIONAL = "functional"
+    NON_FUNCTIONAL = "non_functional"
+
+
 class AcceptanceCriterion(ContractModel):
     """One observable, checkable statement. Written so it CAN be executed in
     the founder's own environment by the verification-loop."""
@@ -33,6 +41,7 @@ class Requirement(ContractModel):
     statement: str
     priority: Priority
     acceptance: list[AcceptanceCriterion] = Field(min_length=1)
+    kind: RequirementKind = Field(description="Functional behavior vs non-functional quality/constraint on behavior.")
     need_ids: list[str] = Field(description="N-ids (stakeholder needs) this requirement realizes.")
     intent_fields: list[str] = Field(
         description="IntentModel fields this requirement traces to (root of the traceability chain)."
