@@ -7,5 +7,5 @@ Bump SemVer rules (see ARCHITECTURE.md in vmodel-spec-app):
   a payload from the wrong minor fails loudly, never silently.
 - PATCH: docs, defaults, validation tightening that accepts a superset of the old inputs.
 """
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 CONTRACT_VERSION = __version__
