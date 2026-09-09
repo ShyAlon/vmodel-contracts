@@ -156,3 +156,64 @@ def test_text_qa_guards_shared():
     assert not text_qa.is_solution_language("exactly one alert within the refresh cycle")
     assert text_qa.grounded_in("surfer cancels a booking", ["surfers book lessons"])
     assert not text_qa.grounded_in("portfolio of case studies", ["surfers book lessons"])
+
+
+def _intent_payload(stamp):
+    from vmodel_contracts import IntentModel
+    p = IntentModel(session_id="s", problem_statement="p", target_users=["u"],
+                    core_value_proposition="v", in_scope=["a"], out_of_scope=["b"],
+                    stakeholder_needs=[{"need_id": "SN-1", "statement": "s", "kind": "functional",
+                                        "source_turns": [0]}],
+                    assumption_items=[{"statement": "a", "source_turns": [0]}],
+                    scope_exclusions=[{"item": "x", "source_turns": [1], "explicit": True}],
+                    source_turns={"problem_statement": [0]}).model_dump(mode="json")
+    def _stamp(node):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if k == "contract_version":
+                    node[k] = stamp
+                else:
+                    _stamp(v)
+        elif isinstance(node, list):
+            for v in node:
+                _stamp(v)
+    _stamp(p)
+    return p
+
+
+def test_migrate_restamps_top_and_nested(tmp_path, capsys):
+    import json
+    from vmodel_contracts.migrate import migrate_file
+    p = _intent_payload("0.5.0")
+    f = tmp_path / "intent_model.json"
+    f.write_text(json.dumps(p))
+    assert migrate_file(f) == 0
+    out = json.loads(f.read_text())
+    from vmodel_contracts import CONTRACT_VERSION, check_compatible
+    check_compatible(out)  # passes now
+    assert out["stakeholder_needs"][0]["contract_version"] == CONTRACT_VERSION
+    assert out["assumption_items"][0]["contract_version"] == CONTRACT_VERSION
+    assert out["scope_exclusions"][0]["contract_version"] == CONTRACT_VERSION
+    assert "0.5.0" in capsys.readouterr().out  # reports what it changed
+
+
+def test_migrate_refuses_incompatible_payload(tmp_path, capsys):
+    import json
+    from vmodel_contracts.migrate import migrate_file
+    p = _intent_payload("0.5.0")
+    del p["problem_statement"]  # schema drift - a re-stamp would launder a bad payload
+    f = tmp_path / "intent_model.json"
+    f.write_text(json.dumps(p))
+    assert migrate_file(f) == 1
+    assert json.loads(f.read_text())["contract_version"] == "0.5.0", "refusal leaves the file untouched"
+    assert "problem_statement" in capsys.readouterr().err
+
+
+def test_migrate_noop_when_current(tmp_path, capsys):
+    import json
+    from vmodel_contracts import CONTRACT_VERSION
+    from vmodel_contracts.migrate import migrate_file
+    f = tmp_path / "intent_model.json"
+    f.write_text(json.dumps(_intent_payload(CONTRACT_VERSION)))
+    assert migrate_file(f) == 0
+    assert "nothing to do" in capsys.readouterr().out
