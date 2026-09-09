@@ -31,7 +31,9 @@ class AcceptanceCriterion(ContractModel):
     executable_hint: str | None = Field(
         default=None,
         description="How verification-loop should check it: 'http GET /health returns 200', "
-        "'dom contains element #cart-total', 'db row exists'. Null = human/semantic check.",
+        "'dom contains element #cart-total', 'db row exists'. Null = human/semantic check. "
+        "Authored DOWNSTREAM (test-spec stage, where the stack exists) - the SRS itself stays "
+        "solution-agnostic; the criterion statement never names the implementation.",
     )
 
 

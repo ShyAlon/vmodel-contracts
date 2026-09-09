@@ -30,7 +30,9 @@ from .verification import (
     VModelLevel,
 )
 from .delivery import DeliveryBundle, HandoffFormat, RunLink, RunState, RunStatus
+from .srs import SRSDocument
 from .telemetry import RunCostReport, StageTokenUsage
+from . import text_qa
 
 __all__ = [
     "CONTRACT_VERSION", "check_compatible", "ContractVersionMismatch",
@@ -70,6 +72,8 @@ __all__ = [
     "RunLink",
     "RunState",
     "RunStatus",
+    "SRSDocument",
     "RunCostReport",
     "StageTokenUsage",
+    "text_qa",
 ]

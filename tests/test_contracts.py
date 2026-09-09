@@ -133,3 +133,26 @@ def test_intent_model_carries_assumptions_v030():
         source_turns={},
     )
     assert m.assumptions == ["internal and external data cannot conflict"]
+
+
+def test_srs_document_roundtrip():
+    from vmodel_contracts import Requirement, RequirementKind, SRSDocument
+    r = Requirement(requirement_id="R-1", title="t", statement="The system shall x",
+                    priority="must", kind=RequirementKind.FUNCTIONAL, need_ids=["SN-1"],
+                    intent_fields=["stakeholder_needs"],
+                    acceptance=[{"criterion_id": "AC-1", "statement": "observable outcome"}])
+    srs = SRSDocument(session_id="s", intent_model_ref="s", purpose="p", scope_summary="sc",
+                      definitions={"TMS": "transport mgmt"}, functional=[r], non_functional=[],
+                      constraints=["c"], open_questions=["q"])
+    assert srs.requirement_ids() == {"R-1"}
+    assert srs.requirements() == [r]
+
+
+def test_text_qa_guards_shared():
+    from vmodel_contracts import text_qa
+    assert text_qa.is_solution_language("GET /health returns 200")
+    assert text_qa.is_solution_language("encrypted with AES-256")
+    assert text_qa.names_technology("queued through Kafka")
+    assert not text_qa.is_solution_language("exactly one alert within the refresh cycle")
+    assert text_qa.grounded_in("surfer cancels a booking", ["surfers book lessons"])
+    assert not text_qa.grounded_in("portfolio of case studies", ["surfers book lessons"])
