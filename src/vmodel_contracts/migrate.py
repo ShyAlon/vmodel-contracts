@@ -20,9 +20,44 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
+from .architecture import ArchitectureOverview
 from .compat import ContractVersionMismatch, check_compatible
 from .interview import IntentModel
 from .version import CONTRACT_VERSION
+
+# ADDED 0.8.0 (ADR-0021): ArchitectureDecision gained required-present fields
+# (driver, options_considered). Pre-0.8.0 decision dicts get the honest legacy
+# form: driver null (unverifiable retroactively), options_considered empty,
+# deprecated `rejected` carried as-is.
+def _synthesize_008(node, path: str = "") -> list[str]:
+    """Recursively add the 0.8.0 required-present fields to decision dicts.
+    Returns the list of changed paths."""
+    changed = []
+    if isinstance(node, dict):
+        if "decision_id" in node and "rationale" in node:
+            here = path or node.get("decision_id", "?")
+            if "driver" not in node:
+                node["driver"] = None
+                changed.append(f"{here}.driver: synthesized null (legacy artifact - no retroactive driver)")
+            if "options_considered" not in node:
+                node["options_considered"] = []
+                changed.append(f"{here}.options_considered: synthesized [] (legacy artifact)")
+        for k, v in node.items():
+            here = f"{path}.{k}" if path else k
+            changed += _synthesize_008(v, here)
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            changed += _synthesize_008(v, f"{path}[{i}]")
+    return changed
+
+
+def _detect_schema(payload: dict):
+    """Which contract model validates this payload. Shape sniff, ordered."""
+    if "stakeholder_needs" in payload:
+        return IntentModel
+    if "components" in payload or "decisions" in payload or "stack" in payload:
+        return ArchitectureOverview
+    return IntentModel  # default: IntentModel errors are the most actionable
 
 
 def _restamp(node, have: str, path: str = "") -> list[str]:
@@ -56,10 +91,14 @@ def migrate_file(path: Path) -> int:
         return 0
     except ContractVersionMismatch:
         pass
+    # synthesize additive required fields from MINOR bumps BEFORE validating:
+    # that synthesis is what makes a re-stamp (not a re-run) the honest path.
+    synthesized = _synthesize_008(payload)
     # validate against the CURRENT schema first: the stamp only moves when the
-    # payload is otherwise a legal current-version intent model.
+    # payload is otherwise a legal current-version artifact.
+    schema = _detect_schema(payload)
     try:
-        IntentModel.model_validate(payload)
+        schema.model_validate(payload)
     except ValidationError as e:
         print(f"Error: {path} is NOT compatible with vmodel-contracts {CONTRACT_VERSION} - refusing to re-stamp.",
               file=sys.stderr)
@@ -71,8 +110,8 @@ def migrate_file(path: Path) -> int:
         return 1
     changed = _restamp(payload, have)
     path.write_text(json.dumps(payload, indent=2) + "\n")
-    print(f"Migrated {path}: {have} -> {CONTRACT_VERSION} ({len(changed)} stamp(s) re-stamped; schema validated first).")
-    for c in changed:
+    print(f"Migrated {path}: {have} -> {CONTRACT_VERSION} ({schema.__name__}; {len(changed)} stamp(s) re-stamped; schema validated first).")
+    for c in synthesized + changed:
         print(f"  {c}")
     return 0
 
@@ -87,3 +126,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
