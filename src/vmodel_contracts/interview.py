@@ -70,6 +70,42 @@ class ScopeExclusion(ContractModel):
     explicit: bool = Field(description="True only if the founder explicitly excluded this in the conversation.")
 
 
+class TechArea(str, Enum):
+    """Where a technology preference applies."""
+
+    LANGUAGE = "language"
+    FRAMEWORK = "framework"
+    CLOUD = "cloud"
+    DATABASE = "database"
+    INFRASTRUCTURE = "infrastructure"
+
+
+class TechStrength(str, Enum):
+    """required binds the architecture stage; preferred guides it. 'Mentioned
+    but not forced' (ADR-0019): cloud affinity is preferred unless the founder
+    explicitly mandated it."""
+
+    REQUIRED = "required"
+    PREFERRED = "preferred"
+
+
+class TechPreference(ContractModel):
+    """A founder-STATED technology/ecosystem preference (ADR-0019). A constraint
+    on design space, never solution language: it confines the architecture
+    stage and must not leak into the SRS. Verified mechanically at distillation:
+    source_turns required (ungrounded = dropped), unrecognized ecosystem names
+    kept but warned for the approval gate."""
+
+    area: TechArea
+    preference: str = Field(description="The founder's words: 'python', 'node', 'agnostic', 'AWS', 'no cloud'.")
+    strength: TechStrength = Field(
+        description="required ONLY when the founder mandated it ('must be', 'locked into'); otherwise preferred."
+    )
+    source_turns: list[int] = Field(
+        min_length=1, description="Transcript turns where the founder stated this. Empty = invented: rejected."
+    )
+
+
 class IntentModel(ContractModel):
     """The distilled 'what are we actually building' the spec hangs off.
 
@@ -111,6 +147,12 @@ class IntentModel(ContractModel):
         default_factory=list,
         description="Founder's acceptance conditions ('I'll know it works when...'). Not needs - "
         "they feed validation downstream. Turns tracked in source_turns['done_criteria'].",
+    )
+    tech_preferences: list[TechPreference] = Field(
+        default_factory=list,
+        description="ADDED 0.7.0 (ADR-0019): founder-stated ecosystem/cloud preferences. Constraints on "
+        "design space - they confine the architecture stage, never the SRS. 'Agnostic' is recorded, "
+        "not treated as silence.",
     )
     glossary: dict[str, str] = Field(
         default_factory=dict,

@@ -70,3 +70,34 @@ def grounded_in(text: str, source_texts: list[str]) -> bool:
         return True  # too generic to flag
     src = content_words(" ".join(source_texts))
     return bool(shared_words(sw, src))
+
+
+# Recognized ecosystem names per area (ADR-0019 'verified' check). A founder
+# preference naming something outside the list is KEPT but warned at the
+# approval gate - niche-but-real exists; invented-and-confident is the enemy.
+KNOWN_ECOSYSTEMS: dict[str, set[str]] = {
+    "language": {"python", "node", "nodejs", "javascript", "typescript", "go", "golang", "rust",
+                 "java", "kotlin", "ruby", "php", "c#", "csharp", ".net", "dotnet", "swift",
+                 "scala", "elixir", "agnostic", "any", "no preference"},
+    "cloud": {"aws", "amazon", "gcp", "google cloud", "azure", "firebase", "supabase", "vercel",
+              "fly.io", "railway", "render", "heroku", "cloudflare", "on-prem", "onprem",
+              "self-hosted", "none", "no cloud", "agnostic", "any"},
+    "database": {"postgres", "postgresql", "mysql", "mariadb", "sqlite", "mongodb", "mongo",
+                 "redis", "dynamodb", "firestore", "cassandra", "elastic", "elasticsearch",
+                 "agnostic", "any"},
+    "framework": {"django", "flask", "fastapi", "rails", "laravel", "express", "nestjs", "next",
+                  "nextjs", "react", "vue", "svelte", "spring", "asp.net", "phoenix", "agnostic", "any"},
+    "infrastructure": {"docker", "kubernetes", "k8s", "terraform", "serverless", "lambda",
+                       "bare metal", "vms", "agnostic", "any"},
+}
+
+
+def ecosystem_recognized(area: str, preference: str) -> bool:
+    """True when the preference names a known ecosystem entry for its area
+    (substring-tolerant: 'we are locked into AWS' matches 'aws'). Unknown areas
+    and empty preferences pass - the check only flags confident nonsense."""
+    names = KNOWN_ECOSYSTEMS.get(area)
+    if not names or not preference.strip():
+        return True
+    low = preference.lower()
+    return any(name in low for name in names)
