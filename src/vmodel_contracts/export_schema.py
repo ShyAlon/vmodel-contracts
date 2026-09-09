@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from . import __all__ as _public
 from . import intake, interview, requirements, spec, verification, delivery, telemetry
 from .base import ContractModel
 

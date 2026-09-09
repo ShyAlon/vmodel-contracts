@@ -112,6 +112,12 @@ class IntentModel(ContractModel):
         description="Founder's acceptance conditions ('I'll know it works when...'). Not needs - "
         "they feed validation downstream. Turns tracked in source_turns['done_criteria'].",
     )
+    glossary: dict[str, str] = Field(
+        default_factory=dict,
+        description="Founder's domain terms mapped to the meaning AS THE FOUNDER USED them "
+        "('exceptions' = plan deviations, 'facilities' = warehouses + stores). Keeps language "
+        "consistent downstream; never invent terms the founder did not say.",
+    )
     operational_concepts: list[str] = Field(
         default_factory=list,
         description="Operational/support processes the founder described (e.g. 'support team handles "

@@ -35,3 +35,9 @@ def test_old_0_3_payloads_still_parse():
     im = _intent(assumptions=["legacy flat assumption"])
     assert im.assumptions == ["legacy flat assumption"]
     assert im.assumption_items == []
+
+
+def test_glossary_roundtrip():
+    im = _intent(glossary={"exceptions": "plan deviations the founder acts on"})
+    assert im.glossary["exceptions"].startswith("plan")
+    assert _intent().glossary == {}
