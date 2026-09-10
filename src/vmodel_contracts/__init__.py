@@ -25,6 +25,9 @@ from .spec import (
 )
 from .verification import (
     AcceptanceTest,
+    TestCase,
+    TestDefinition,
+    TestExecution,
     Divergence,
     DivergenceKind,
     TestResult,
@@ -64,6 +67,9 @@ __all__ = [
     "SpecManifest",
     "TraceabilityEntry",
     "AcceptanceTest",
+    "TestCase",
+    "TestDefinition",
+    "TestExecution",
     "Divergence",
     "DivergenceKind",
     "TestResult",
@@ -80,3 +86,4 @@ __all__ = [
     "StageTokenUsage",
     "text_qa",
 ]
+

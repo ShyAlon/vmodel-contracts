@@ -25,6 +25,50 @@ class VModelLevel(str, Enum):
     ACCEPTANCE = "acceptance"   # against the original needs (AcceptanceCriterion)
 
 
+class TestCase(ContractModel):
+    """One row in a data-driven or scenario-matrix test."""
+
+    name: str
+    inputs: list[str]
+    expected_outcomes: list[str]
+
+
+class TestExecution(ContractModel):
+    """Known machine-readable runner inputs.
+
+    Fields are optional because they apply to different runners, but unknown
+    ad-hoc keys are forbidden by ContractModel. Human-readable procedure text
+    stays separate, so adding automation detail cannot crowd it out.
+    """
+
+    url: str | None = None
+    method: str | None = None
+    body_json: str | None = None
+    expected_status: int | None = None
+    command: str | None = None
+    expected_exit: int | None = None
+    expected_stdout_contains: str | None = None
+    selector: str | None = None
+
+
+class TestDefinition(ContractModel):
+    """Canonical procedure for every generated test.
+
+    All fields are always present (empty lists are honest when a phase does
+    not apply). `cases` preserves useful matrices without allowing their keys
+    to replace the procedure contract. `execution` preserves the small
+    machine-readable subset used by deterministic runners. The LLM owns the
+    technical content; code owns only its stable container.
+    """
+
+    preconditions: list[str]
+    steps: list[str]
+    expected_outcomes: list[str]
+    cleanup: list[str]
+    cases: list[TestCase]
+    execution: TestExecution
+
+
 class AcceptanceTest(ContractModel):
     """A runnable check. `runner` tells the founder-side agent how to execute
     it IN THE FOUNDER'S OWN ENVIRONMENT - we never run their code on our infra."""
@@ -35,7 +79,7 @@ class AcceptanceTest(ContractModel):
     spec_id: str | None = Field(default=None, description="SPEC-id this test targets (lower levels).")
     description: str
     runner: str = Field(description="'http' | 'dom' | 'cli' | 'static' | 'semantic'")
-    definition: dict = Field(description="Runner-specific payload: URL+expected status, selector, command, etc.")
+    definition: TestDefinition
 
 
 class TestResult(ContractModel):
@@ -81,3 +125,4 @@ class VerificationReport(ContractModel):
         default_factory=list,
         description="Things only an LLM/human can judge (tone, flow coherence), with the LLM's reading.",
     )
+

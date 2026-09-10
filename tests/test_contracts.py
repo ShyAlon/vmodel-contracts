@@ -1,3 +1,4 @@
+import pytest
 """Smoke tests: round-trip every model, verify version stamping, schema export."""
 import json
 
@@ -217,3 +218,24 @@ def test_migrate_noop_when_current(tmp_path, capsys):
     f.write_text(json.dumps(_intent_payload(CONTRACT_VERSION)))
     assert migrate_file(f) == 0
     assert "nothing to do" in capsys.readouterr().out
+
+
+
+def test_test_definition_has_one_stable_shape_and_preserves_matrices():
+    from pydantic import ValidationError
+    from vmodel_contracts import TestDefinition
+
+    d = TestDefinition(
+        preconditions=["service is running"],
+        steps=["POST /bookings with a valid request"],
+        expected_outcomes=["HTTP 201 and the booking is persisted"],
+        cleanup=["delete the booking"],
+        cases=[
+            {"name": "E-1", "inputs": ["valid booking"], "expected_outcomes": ["accepted"]},
+            {"name": "E-2", "inputs": ["duplicate booking"], "expected_outcomes": ["rejected"]},
+        ],
+        execution={"url": "/bookings", "method": "POST", "expected_status": 201},
+    )
+    assert [c.name for c in d.cases] == ["E-1", "E-2"]
+    with pytest.raises(ValidationError):
+        TestDefinition.model_validate({"setup": [], "execution": [], "verification": []})
