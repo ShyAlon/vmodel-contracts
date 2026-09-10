@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from vmodel_contracts.architecture import (ArchitectureDecision, ArchitectureOverview,
                                            ConsideredOption, DecisionDriver)
 from vmodel_contracts.migrate import migrate_file
+from vmodel_contracts.version import CONTRACT_VERSION
 
 
 def _decision(**kw):
@@ -65,5 +66,5 @@ def test_migrate_synthesizes_legacy_decision(tmp_path):
     assert dec["driver"] is None            # honest legacy form - no retroactive driver
     assert dec["options_considered"] == []
     assert dec["rejected"] == ["Angular - ceremony"]  # deprecated field carried
-    assert out["contract_version"] == "0.8.0"
+    assert out["contract_version"] == CONTRACT_VERSION
     ArchitectureOverview.model_validate(out)  # the migrated artifact validates

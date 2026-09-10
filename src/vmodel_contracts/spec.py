@@ -23,7 +23,9 @@ class SpecItemKind(str, Enum):
 
 
 class ItemSpec(ContractModel):
-    spec_id: str = Field(pattern=r"^SPEC-[a-z0-9-]+$")
+    spec_id: str = Field(pattern=r"^SPEC-\d+$", description="Code-owned, numbered in plan order (SPEC-1, SPEC-2, ...) - consistent with R-/T- numbering.")
+    slug: str | None = Field(default=None, pattern=r"^[a-z0-9][a-z0-9-]*$",
+                             description="Human-readable short name the model proposed at plan time (api, orders); the numbered spec_id is canonical.")
     kind: SpecItemKind
     title: str
     body_markdown: str = Field(description="The spec itself, markdown, written for a coding agent to execute against.")
@@ -83,3 +85,4 @@ class SpecManifest(ContractModel):
     files: dict[str, str] = Field(description="Logical name -> relative path inside the bundle.")
     milestones: list[BuildMilestone]
     target_agent: str = Field(default="claude-code", description="Demo targets one agent: Claude Code.")
+
