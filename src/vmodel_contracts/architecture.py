@@ -12,6 +12,18 @@ class ComponentSpec(ContractModel):
     name: str
     responsibility: str
     requirement_ids: list[str] = Field(default_factory=list)
+    baseline_refs: list[str] = Field(
+        default_factory=list,
+        description="Canonical SystemBaseline refs proving where this component exists.",
+    )
+    migration: bool = Field(
+        default=False,
+        description="True when this is a new/replaced component rather than baseline-preserving work.",
+    )
+    migration_adr_title: str | None = Field(
+        default=None,
+        description="Exact title of the migration ADR authorizing this departure; null when migration is false.",
+    )
 
 
 class DecisionDriver(str, Enum):
@@ -55,6 +67,22 @@ class ArchitectureDecision(ContractModel):
     options_considered: list[ConsideredOption] = Field(
         description="The leading rejected alternatives, each with why it lost. Empty is honest under a mandate."
     )
+    baseline_refs: list[str] = Field(
+        default_factory=list,
+        description="Source refs from SystemBaseline supporting this decision.",
+    )
+    migration: bool = Field(
+        default=False,
+        description="True only when this decision departs from the SystemBaseline.",
+    )
+    evidence: list[str] = Field(
+        default_factory=list,
+        description="Concrete evidence justifying a migration; required when migration is true.",
+    )
+    affected_repositories: list[str] = Field(
+        default_factory=list,
+        description="Baseline repository names changed by a migration; required when migration is true.",
+    )
     rejected: list[str] = Field(
         default_factory=list,
         description="DEPRECATED 0.8.0 - kept so 0.7.x payloads parse; new producers leave it empty.",
@@ -63,8 +91,16 @@ class ArchitectureDecision(ContractModel):
 
 class ArchitectureOverview(ContractModel):
     session_id: str
+    baseline_id: str | None = Field(
+        default=None,
+        description="Exact SystemBaseline reconciled by this architecture; null only for legacy artifacts.",
+    )
     stack: dict[str, str] = Field(
-        description="Named choices: framework, database, hosting, auth, ... Values are opinionated defaults from the archetype."
+        description="Named technology choices reconciled against SystemBaseline; never inferred from an archetype."
+    )
+    stack_baseline_refs: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="For each stack key, canonical SystemBaseline refs supporting the choice; [] marks a migration choice.",
     )
     components: list[ComponentSpec]
     decisions: list[ArchitectureDecision]

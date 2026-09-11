@@ -15,6 +15,7 @@ from .interview import (
 from .needs import StakeholderNeed, StakeholderNeedsSet
 from .requirements import AcceptanceCriterion, Priority, Requirement, RequirementKind, RequirementSet
 from .architecture import ArchitectureDecision, ArchitectureOverview, ComponentSpec
+from .baseline import BaselineMode, RepositoryManifest, SystemBaseline
 from .spec import (
     BuildMilestone,
     ItemSpec,
@@ -61,6 +62,7 @@ __all__ = [
     "ArchitectureDecision",
     "ArchitectureOverview",
     "ComponentSpec",
+    "BaselineMode", "RepositoryManifest", "SystemBaseline",
     "BuildMilestone",
     "ItemSpec",
     "SpecItemKind",

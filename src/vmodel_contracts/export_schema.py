@@ -5,10 +5,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from . import intake, interview, requirements, spec, verification, delivery, telemetry
+from . import intake, interview, requirements, spec, verification, delivery, telemetry, baseline
 from .base import ContractModel
 
-_MODULES = [intake, interview, requirements, spec, verification, delivery, telemetry]
+_MODULES = [intake, interview, requirements, spec, verification, delivery, telemetry, baseline]
 
 
 def all_models() -> dict[str, type[ContractModel]]:
