@@ -5,6 +5,7 @@ never import each other. They exchange these models, pinned to an exact
 release of this package.
 """
 from .version import CONTRACT_VERSION
+from .runtime import keep_awake_command, run_with_system_awake, system_awake
 from .intake import AppArchetype, IntakeSubmission, ScopeVerdict
 from .compat import ContractVersionMismatch, check_compatible
 from .interview import (
@@ -42,6 +43,7 @@ from . import text_qa
 
 __all__ = [
     "CONTRACT_VERSION", "check_compatible", "ContractVersionMismatch",
+    "keep_awake_command", "run_with_system_awake", "system_awake",
     "AppArchetype",
     "IntakeSubmission",
     "ScopeVerdict",
@@ -86,4 +88,5 @@ __all__ = [
     "StageTokenUsage",
     "text_qa",
 ]
+
 
