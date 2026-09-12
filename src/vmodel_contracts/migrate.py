@@ -51,11 +51,67 @@ def _synthesize_008(node, path: str = "") -> list[str]:
     return changed
 
 
+class UnhealableLegacyArchitecture(ValueError):
+    """A pre-0.13.0 architecture payload whose parallel maps cannot be healed
+    into typed stack entries without guessing."""
+
+
+def _synthesize_013(payload: dict) -> list[str]:
+    """0.13.0: heal a pre-0.13.0 architecture payload's parallel maps
+    (`stack` + `stack_baseline_refs`) into typed `stack_entries`.
+
+    Honest rules (the 2026-09-11 phi4 failure shaped them):
+    - Both maps present, both dicts, EQUAL key sets: unambiguous legacy -
+      co-locate each value with its refs; migration_adr_id stays null (the
+      legacy departure linkage was by ADR title/decision text and is NOT
+      retro-mapped to pipeline ids; the stage checks accept the legacy form).
+    - Key sets disagree, or either value is not a string->string / string->
+      list map: the payload is ambiguous or malformed. Refuse loudly - it
+      needs an architecture re-run, not a guessed heal.
+    Returns the list of changed paths."""
+    if "stack_entries" in payload or "stack" not in payload:
+        return []
+    stack = payload.get("stack")
+    refs_present = "stack_baseline_refs" in payload
+    refs = payload.get("stack_baseline_refs", {})
+    # A MISSING refs map is not ambiguous: pre-grounding artifacts (pre-0.12.0)
+    # simply did not record refs - heal with empty refs ("not recorded"), which
+    # the CONTRACT accepts even though the stage demands grounding for new work.
+    # A PRESENT refs map whose keys disagree with the stack map IS ambiguous:
+    # no honest co-location exists (the 2026-09-11 phi4 failure shape).
+    if not isinstance(stack, dict) or not isinstance(refs, dict) or (refs_present and set(stack) != set(refs)):
+        raise UnhealableLegacyArchitecture(
+            "this pre-0.13.0 architecture payload cannot be healed: 'stack' and "
+            "'stack_baseline_refs' must both be maps with EXACTLY the same keys "
+            f"(stack keys: {sorted(stack) if isinstance(stack, dict) else type(stack).__name__}; "
+            f"refs keys: {sorted(refs) if isinstance(refs, dict) else type(refs).__name__}). "
+            "The two maps disagree, so no honest co-location exists - this payload "
+            "needs an architecture re-run against contracts 0.13.0, not a migration."
+        )
+    entries = []
+    for key, value in stack.items():
+        entry_refs = refs.get(key, [])
+        if not isinstance(value, str) or not isinstance(entry_refs, list) or not all(isinstance(r, str) for r in entry_refs):
+            raise UnhealableLegacyArchitecture(
+                f"stack entry {key!r} is malformed (value {type(value).__name__}, "
+                f"refs {type(entry_refs).__name__}) - refusing to guess; re-run the architecture stage."
+            )
+        entries.append({"contract_version": CONTRACT_VERSION, "key": key, "value": value,
+                        "baseline_refs": entry_refs, "migration_adr_id": None})
+    payload["stack_entries"] = entries
+    del payload["stack"]
+    payload.pop("stack_baseline_refs", None)
+    note = ("stack/stack_baseline_refs" if refs_present else "stack (no refs recorded pre-0.12.0)")
+    return [f"{note}: healed into stack_entries ({len(entries)} entries, "
+            "migration_adr_id null - legacy title-linked departures)"]
+
+
 def _detect_schema(payload: dict):
     """Which contract model validates this payload. Shape sniff, ordered."""
     if "stakeholder_needs" in payload:
         return IntentModel
-    if "components" in payload or "decisions" in payload or "stack" in payload:
+    if ("components" in payload or "decisions" in payload
+            or "stack" in payload or "stack_entries" in payload):
         return ArchitectureOverview
     return IntentModel  # default: IntentModel errors are the most actionable
 
@@ -93,7 +149,11 @@ def migrate_file(path: Path) -> int:
         pass
     # synthesize additive required fields from MINOR bumps BEFORE validating:
     # that synthesis is what makes a re-stamp (not a re-run) the honest path.
-    synthesized = _synthesize_008(payload)
+    try:
+        synthesized = _synthesize_008(payload) + _synthesize_013(payload)
+    except UnhealableLegacyArchitecture as e:
+        print(f"Error: {path}: {e}", file=sys.stderr)
+        return 1
     # validate against the CURRENT schema first: the stamp only moves when the
     # payload is otherwise a legal current-version artifact.
     schema = _detect_schema(payload)

@@ -89,18 +89,41 @@ class ArchitectureDecision(ContractModel):
     )
 
 
+class StackEntry(ContractModel):
+    """ADDED 0.13.0: one technology choice with its grounding CO-LOCATED.
+
+    Replaces the pre-0.13.0 parallel maps (`stack` + `stack_baseline_refs`),
+    whose cross-map key-set invariant a constrained grammar cannot enforce -
+    the 2026-09-11 phi4 live failure emitted a schema-legal `stack` map with
+    a bogus `stack_baseline_refs` string key inside it, and the two maps' key
+    sets disagreed. Co-locating each value with its evidence makes that
+    misplacement structurally impossible: there is no second map to keep in
+    sync.
+    """
+
+    key: str = Field(min_length=1, description="The technology slot named: 'language', 'database', 'model_runtime'.")
+    value: str = Field(min_length=1, description="The chosen technology: 'Python 3.14', 'PostgreSQL 17'.")
+    baseline_refs: list[str] = Field(
+        default_factory=list,
+        description="Canonical SystemBaseline refs supporting the choice; [] marks a migration choice.",
+    )
+    migration_adr_id: str | None = Field(
+        default=None,
+        pattern=r"^ADR-\d+$",
+        description="Pipeline-assigned id of the migration ADR authorizing this departure; "
+                    "null unless baseline_refs is empty (a migration choice).",
+    )
+
+
 class ArchitectureOverview(ContractModel):
     session_id: str
     baseline_id: str | None = Field(
         default=None,
         description="Exact SystemBaseline reconciled by this architecture; null only for legacy artifacts.",
     )
-    stack: dict[str, str] = Field(
-        description="Named technology choices reconciled against SystemBaseline; never inferred from an archetype."
-    )
-    stack_baseline_refs: dict[str, list[str]] = Field(
-        default_factory=dict,
-        description="For each stack key, canonical SystemBaseline refs supporting the choice; [] marks a migration choice.",
+    stack_entries: list[StackEntry] = Field(
+        description="Named technology choices, each co-located with its SystemBaseline grounding; "
+                    "never inferred from an archetype. Keys are unique."
     )
     components: list[ComponentSpec]
     decisions: list[ArchitectureDecision]
