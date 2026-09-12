@@ -1,6 +1,8 @@
 from unittest.mock import Mock, patch
 
-from vmodel_contracts.runtime import keep_awake_command, run_with_system_awake, system_awake
+from pathlib import Path
+
+from vmodel_contracts.runtime import artifacts_root, keep_awake_command, run_with_system_awake, system_awake
 
 
 def test_keep_awake_command_wraps_only_on_macos():
@@ -31,3 +33,18 @@ def test_system_awake_follows_current_process_and_cleans_up():
 def test_run_with_system_awake_is_transparent_off_macos():
     with patch("vmodel_contracts.runtime.sys.platform", "linux"):
         assert run_with_system_awake(lambda x: x + 1, 4) == 5
+
+
+def test_artifacts_root_defaults_to_sibling_folder(tmp_path):
+    repo = tmp_path / "require" / "spec-generator"
+    repo.mkdir(parents=True)
+    assert artifacts_root(cwd=repo) == (tmp_path / "require" / "artifacts").resolve()
+
+
+def test_artifacts_root_override_wins_absolute_and_relative(tmp_path):
+    repo = tmp_path / "require" / "spec-generator"
+    repo.mkdir(parents=True)
+    assert artifacts_root("/data/runs", cwd=repo) == Path("/data/runs")
+    assert artifacts_root("out", cwd=repo) == (repo / "out").resolve()
+    assert artifacts_root("", cwd=repo) == (tmp_path / "require" / "artifacts").resolve()
+    assert artifacts_root(None, cwd=repo) == (tmp_path / "require" / "artifacts").resolve()
