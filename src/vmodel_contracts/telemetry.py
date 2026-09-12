@@ -4,11 +4,66 @@ records exist for real runs.
 """
 from __future__ import annotations
 
+import json
+import os
 from datetime import datetime, timezone
+from pathlib import Path
 
 from pydantic import Field
 
 from .base import ContractModel
+
+# Versioned price table (USD per MTok). THE one table for every repo (shared-
+# module doctrine: it lived in interview-engine AND spec-generator with
+# divergent failure behavior - a missing price crashed one pipeline and was
+# silently zeroed in the other). Update here AND bump PRICE_TABLE_VERSION -
+# price drift is real and silent drift makes cost reports lie retroactively.
+PRICE_TABLE_VERSION = "2026-09-12"
+PRICES_USD_PER_MTOK: dict[str, tuple[float, float]] = {
+    # model: (input, output)
+    "deepseek-flash": (0.30, 1.20),       # V4.1 Flash peak; off-peak $0.15/$0.60
+    "deepseek-v4-pro": (1.32, 3.96),      # peak; off-peak $0.66/$1.98; retires to Flash 2026-09-14
+    "claude-sonnet-5": (2.00, 10.00),     # platform.claude.com, 2026-09-08
+    "claude-haiku-4.5": (1.00, 5.00),     # platform.claude.com, 2026-09-08
+    "gpt-5": (1.25, 10.00),               # OpenAI model page, 2026-09-08
+    "gpt-5-mini": (0.25, 2.00),
+    "gpt-5-nano": (0.05, 0.40),
+}
+
+
+def load_price_table() -> dict[str, tuple[float, float]]:
+    """Built-in defaults, overridable without a code change: point
+    VMODEL_PRICE_TABLE at a JSON file {"model": [input_per_mtok, output_per_mtok], ...}.
+    The operator's file WINS on conflict, so correcting a price is a config
+    edit, not a release."""
+    table = dict(PRICES_USD_PER_MTOK)
+    path = os.environ.get("VMODEL_PRICE_TABLE")
+    if path:
+        with open(Path(path)) as f:
+            override = json.load(f)
+        for model, pair in override.items():
+            if not (isinstance(pair, list) and len(pair) == 2):
+                raise ValueError(f"VMODEL_PRICE_TABLE entry {model!r} must be [input, output] per MTok")
+            table[model] = (float(pair[0]), float(pair[1]))
+    return table
+
+
+def price_for(model: str, provider: str = "") -> tuple[float, float]:
+    """(input, output) USD per MTok for one call. Local by construction, not
+    by table lookup: any ollama-routed call is $0 however the provider string
+    is spelled ('ollama', langchain's 'chatollama', a bare local model name
+    routed through the ollama config). The hard-fail is reserved for UNPRICED
+    REMOTE calls - a missing price for a paid model means an unbudgeted call,
+    and that must crash loudly, never log a silent $0."""
+    p = (provider or "").lower()
+    if "ollama" in p or model.startswith(("ollama:", "ollama/")):
+        return (0.0, 0.0)
+    table = load_price_table()
+    if model not in table:
+        raise KeyError(
+            f"no price for {model!r} in table v{PRICE_TABLE_VERSION} - add it via "
+            "VMODEL_PRICE_TABLE; unpriced calls are unbudgeted calls")
+    return table[model]
 
 
 class StageTokenUsage(ContractModel):

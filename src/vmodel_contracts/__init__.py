@@ -39,7 +39,8 @@ from .verification import (
 )
 from .delivery import DeliveryBundle, HandoffFormat, RunLink, RunState, RunStatus
 from .srs import SRSDocument
-from .telemetry import RunCostReport, StageTokenUsage
+from .telemetry import (PRICE_TABLE_VERSION, PRICES_USD_PER_MTOK, RunCostReport,
+                        StageTokenUsage, load_price_table, price_for)
 from . import text_qa
 
 __all__ = [
@@ -89,6 +90,10 @@ __all__ = [
     "SRSDocument",
     "RunCostReport",
     "StageTokenUsage",
+    "PRICE_TABLE_VERSION",
+    "PRICES_USD_PER_MTOK",
+    "load_price_table",
+    "price_for",
     "text_qa",
 ]
 
