@@ -12,6 +12,7 @@ from .interview import (
     Assumption, IntentNeed, InterviewTurn, InterviewTranscript, IntentModel, ScopeExclusion,
     TechArea, TechPreference, TechStrength,
 )
+from .conops import (ConceptDecision, ConceptOption, ConOpsDocument, OperationalScenario, StakeholderContext)
 from .needs import StakeholderNeed, StakeholderNeedsSet
 from .requirements import AcceptanceCriterion, Priority, Requirement, RequirementKind, RequirementSet
 from .architecture import ArchitectureDecision, ArchitectureOverview, ComponentSpec, StackEntry
@@ -54,6 +55,8 @@ __all__ = [
     "IntentModel",
     "Assumption",
     "ScopeExclusion", "TechArea", "TechPreference", "TechStrength", "IntentNeed",
+    "ConOpsDocument", "StakeholderContext", "OperationalScenario",
+    "ConceptOption", "ConceptDecision",
     "StakeholderNeed",
     "StakeholderNeedsSet",
     "AcceptanceCriterion",

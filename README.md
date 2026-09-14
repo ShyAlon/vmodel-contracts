@@ -6,8 +6,8 @@ other; they exchange these models and nothing else.
 
 Consumers (each pins an exact release, e.g. `vmodel-contracts @ git+https://github.com/ShyAlon/vmodel-contracts@v0.1.0`):
 
-- `interview-engine` produces `ScopeVerdict`, `InterviewTranscript`, `IntentModel`
-- `spec-generator` consumes `IntentModel`, produces `StakeholderNeedsSet`,
+- `interview-engine` produces `ScopeVerdict`, `InterviewTranscript`, `IntentModel`, `ConOpsDocument`
+- `spec-generator` consumes `IntentModel` + `ConOpsDocument`, produces `StakeholderNeedsSet`,
   `RequirementSet`, `ArchitectureOverview`, `SpecBundle` (items + AGENTS.md +
   build plan + manifest + punch list + traceability)
 - `verification-loop` consumes `SpecBundle` + a build artifact, produces
