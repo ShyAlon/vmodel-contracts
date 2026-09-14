@@ -1,7 +1,8 @@
 """Intake + scope gate.
 
-The system builds specs for WEB APPLICATIONS ONLY (they may consume web APIs
-and services). Intake classifies; anything else gets a polite decline. The
+The system builds specs for interactive applications - including games -
+delivered on web or mobile platforms. Intake classifies; non-software ideas
+and unsupported delivery forms get a polite decline. The
 gate is hybrid by design: deterministic signals first, LLM only as tiebreaker.
 """
 from __future__ import annotations
@@ -14,15 +15,20 @@ from .base import ContractModel
 
 
 class AppArchetype(str, Enum):
-    """Web-app archetypes the demo knows how to spec. Grows deliberately."""
+    """Legacy-named application archetypes the product knows how to spec.
+
+    OTHER_WEB and NOT_WEB_APP are retained machine values for payload
+    compatibility. Renaming them requires a contract migration; they now mean
+    other supported interactive application and out-of-scope respectively.
+    """
 
     SAAS_CRUD = "saas_crud"            # classic multi-tenant CRUD SaaS
     MARKETPLACE = "marketplace"        # two-sided listings + transactions
     CONTENT_SITE = "content_site"      # CMS-driven publishing
     DASHBOARD = "dashboard"            # analytics over external APIs
     ECOMMERCE = "ecommerce"            # catalog + cart + payment
-    OTHER_WEB = "other_web"            # in scope, no archetype committed
-    NOT_WEB_APP = "not_web_app"        # out of scope -> decline
+    OTHER_WEB = "other_web"            # legacy value: supported interactive app, no narrower archetype
+    NOT_WEB_APP = "not_web_app"        # legacy value: out of product scope -> decline
 
 
 class IntakeSubmission(ContractModel):
