@@ -8,6 +8,8 @@ from .version import CONTRACT_VERSION
 from .vocabulary import (ARTIFACT_LABELS, CONCEPT_DECISION, CONCEPT_OF_OPERATIONS,
                          CONCEPT_OPTION, OPERATIONAL_SCENARIO, STAGE_LABELS,
                          STAKEHOLDER_CONTEXT, ArtifactName, PipelineStage)
+from .product_scope import (PRODUCT_SCOPE_DEFINITION, SCOPE_DECLINE_PREFIX,
+                            SCOPE_IN_SIGNALS, SCOPE_OUT_SIGNALS)
 from .runtime import keep_awake_command, run_with_system_awake, system_awake
 from .intake import AppArchetype, IntakeSubmission, ScopeVerdict
 from .compat import ContractVersionMismatch, check_compatible
@@ -52,6 +54,7 @@ __all__ = [
     "PipelineStage", "STAGE_LABELS", "ArtifactName", "ARTIFACT_LABELS",
     "CONCEPT_OF_OPERATIONS", "CONCEPT_OPTION", "CONCEPT_DECISION",
     "OPERATIONAL_SCENARIO", "STAKEHOLDER_CONTEXT",
+    "PRODUCT_SCOPE_DEFINITION", "SCOPE_DECLINE_PREFIX", "SCOPE_IN_SIGNALS", "SCOPE_OUT_SIGNALS",
     "keep_awake_command", "run_with_system_awake", "system_awake",
     "AppArchetype",
     "IntakeSubmission",
