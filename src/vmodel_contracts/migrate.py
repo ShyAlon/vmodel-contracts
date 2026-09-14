@@ -23,6 +23,7 @@ from pydantic import ValidationError
 from .architecture import ArchitectureOverview
 from .compat import ContractVersionMismatch, check_compatible
 from .interview import IntentModel
+from .baseline import SystemBaseline
 from .version import CONTRACT_VERSION
 
 # ADDED 0.8.0 (ADR-0021): ArchitectureDecision gained required-present fields
@@ -110,6 +111,8 @@ def _detect_schema(payload: dict):
     """Which contract model validates this payload. Shape sniff, ordered."""
     if "stakeholder_needs" in payload:
         return IntentModel
+    if "baseline_id" in payload and "mode" in payload and "repositories" in payload:
+        return SystemBaseline
     if ("components" in payload or "decisions" in payload
             or "stack" in payload or "stack_entries" in payload):
         return ArchitectureOverview
