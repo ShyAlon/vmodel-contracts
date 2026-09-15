@@ -15,3 +15,17 @@ def test_conops_ids_are_resolved_once_at_parse_boundary():
 def test_off_list_requires_structured_justification():
     with pytest.raises(ValidationError, match="off_list_justification"):
         TechnologySelection(slot_id="slot:runtime", technology_id="off-list:rare", display_name="Rare")
+
+def test_stack_entry_dispositions_require_content_and_remain_non_executable():
+    from vmodel_contracts import ArchitectureOverview
+    base = {"session_id":"s", "stack_entries":[], "components":[], "decisions":[], "non_functionals":{}}
+    research = ArchitectureOverview.model_validate({**base, "stack_entry_dispositions":[
+        {"key":"real_time_data_source", "status":"research_required", "research_brief":"Find current APIs, terms, and coverage."}]})
+    assert research.stack_entries == []
+    assert research.stack_entry_dispositions[0].research_brief.startswith("Find")
+    excluded = ArchitectureOverview.model_validate({**base, "stack_entry_dispositions":[
+        {"key":"database", "status":"not_applicable", "reason":"The stateless concept stores no data."}]})
+    assert excluded.stack_entries == []
+    for item in ({"key":"x", "status":"research_required"}, {"key":"x", "status":"not_applicable"}):
+        with pytest.raises(ValidationError):
+            ArchitectureOverview.model_validate({**base, "stack_entry_dispositions":[item]})

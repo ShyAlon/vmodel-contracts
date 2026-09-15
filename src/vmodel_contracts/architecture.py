@@ -108,6 +108,40 @@ class ArchitectureDecision(ContractModel):
     )
 
 
+class StackEntryStatus(str, Enum):
+    """A non-executable outcome for a considered architecture stack slot."""
+
+    RESEARCH_REQUIRED = "research_required"
+    NOT_APPLICABLE = "not_applicable"
+
+
+class StackEntryDisposition(ContractModel):
+    """A considered stack slot that is deliberately not a technology choice.
+
+    Delegated or ambiguous discovery is research_required. not_applicable is
+    reserved for a slot that genuinely does not apply to the concept.
+    """
+
+    key: str = Field(min_length=1)
+    status: StackEntryStatus
+    research_brief: str | None = None
+    reason: str | None = None
+
+    @model_validator(mode="after")
+    def required_explanation(self):
+        if self.status == StackEntryStatus.RESEARCH_REQUIRED:
+            if not (self.research_brief or "").strip():
+                raise ValueError("research_required entry requires research_brief")
+            if self.reason is not None:
+                raise ValueError("reason belongs only to not_applicable")
+        else:
+            if not (self.reason or "").strip():
+                raise ValueError("not_applicable entry requires reason")
+            if self.research_brief is not None:
+                raise ValueError("research_brief belongs only to research_required")
+        return self
+
+
 class StackEntry(ContractModel):
     """ADDED 0.13.0: one technology choice with its grounding CO-LOCATED.
 
@@ -146,6 +180,10 @@ class ArchitectureOverview(ContractModel):
         description="Named technology choices, each co-located with its SystemBaseline grounding; "
                     "never inferred from an archetype. Keys are unique."
     )
+    stack_entry_dispositions: list[StackEntryDisposition] = Field(
+        default_factory=list,
+        description="Considered but unresolved or excluded slots. These are never executable stack choices.",
+    )
     components: list[ComponentSpec]
     decisions: list[ArchitectureDecision]
     non_functionals: dict[str, str] = Field(
@@ -155,6 +193,11 @@ class ArchitectureOverview(ContractModel):
 
     @model_validator(mode="after")
     def stack_is_adr_projection(self):
+        concrete_keys = [normalize_identity(e.key) for e in self.stack_entries]
+        disposition_keys = [normalize_identity(e.key) for e in self.stack_entry_dispositions]
+        all_keys = concrete_keys + disposition_keys
+        if len(all_keys) != len(set(all_keys)):
+            raise ValueError("stack slot keys must be unique across entries and dispositions")
         selections = [(d.decision_id, x) for d in self.decisions for x in d.technology_selections]
         slot_ids = [x.slot_id for _, x in selections]
         if len(slot_ids) != len(set(slot_ids)):
