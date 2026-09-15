@@ -15,7 +15,7 @@ from .runtime import keep_awake_command, run_with_system_awake, system_awake
 from .intake import AppArchetype, IntakeSubmission, ScopeVerdict
 from .compat import ContractVersionMismatch, check_compatible
 from .interview import (
-    Assumption, IntentNeed, InterviewTurn, InterviewTranscript, IntentModel, ScopeExclusion,
+    Assumption, IntentNeed, ResearchBrief, InterviewTurn, InterviewTranscript, IntentModel, ScopeExclusion,
     TechArea, TechPreference, TechStrength,
 )
 from .conops import (ConceptDecision, ConceptOption, ConOpsDocument, OperationalScenario, StakeholderContext)
@@ -64,7 +64,7 @@ __all__ = [
     "InterviewTurn",
     "InterviewTranscript",
     "IntentModel",
-    "Assumption",
+    "Assumption", "ResearchBrief",
     "ScopeExclusion", "TechArea", "TechPreference", "TechStrength", "IntentNeed",
     "ConOpsDocument", "StakeholderContext", "OperationalScenario",
     "ConceptOption", "ConceptDecision",

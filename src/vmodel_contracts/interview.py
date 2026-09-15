@@ -106,6 +106,14 @@ class TechPreference(ContractModel):
     )
 
 
+class ResearchBrief(ContractModel):
+    """Founder-delegated discovery to resolve from current sources at the architecture gate."""
+
+    topic: str = Field(min_length=1)
+    brief: str = Field(min_length=1)
+    source_turns: list[int] = Field(min_length=1)
+
+
 class IntentModel(ContractModel):
     """The distilled 'what are we actually building' the spec hangs off.
 
@@ -164,6 +172,10 @@ class IntentModel(ContractModel):
         default_factory=list,
         description="Operational/support processes the founder described (e.g. 'support team handles "
         "failures'). Not system requirements - captured so they are not lost or misclassified as NFRs.",
+    )
+    research_briefs: list[ResearchBrief] = Field(
+        default_factory=list,
+        description="Delegated engineering or external-fact discovery. Resolve from grounded sources, never model memory.",
     )
     open_questions: list[str] = Field(
         default_factory=list,
