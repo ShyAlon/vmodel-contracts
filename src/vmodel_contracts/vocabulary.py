@@ -12,6 +12,7 @@ from enum import Enum
 class PipelineStage(str, Enum):
     INTAKE = "intake"
     INTERVIEW = "interview"
+    INTENT = "intent"
     SCOPE_TIEBREAK = "scope_tiebreak"
     PROBING = "probing"
     DISTILLATION = "distillation"
@@ -31,6 +32,7 @@ class PipelineStage(str, Enum):
 STAGE_LABELS: dict[PipelineStage, str] = {
     PipelineStage.INTAKE: "Intake",
     PipelineStage.INTERVIEW: "Interview",
+    PipelineStage.INTENT: "Intent Model",
     PipelineStage.SCOPE_TIEBREAK: "Scope Tiebreak",
     PipelineStage.PROBING: "Interview Probing",
     PipelineStage.DISTILLATION: "Intent Distillation",
