@@ -49,22 +49,7 @@ def test_no_options_floor_empty_list_is_valid():
     assert d.options_considered == []
 
 
-def test_migrate_synthesizes_legacy_decision(tmp_path):
-    payload = {"contract_version": "0.7.0", "session_id": "s1",
-               "stack": {"framework": "React"},
-               "components": [{"contract_version": "0.7.0", "name": "web", "responsibility": "UI",
-                               "requirement_ids": ["R-1"]}],
-               "decisions": [{"contract_version": "0.7.0", "decision_id": "ADR-1", "title": "Frontend",
-                              "decision": "React", "rationale": "biggest ecosystem",
-                              "rejected": ["Angular - ceremony"]}],
-               "non_functionals": {}}
-    p = tmp_path / "architecture.json"
-    p.write_text(json.dumps(payload))
-    assert migrate_file(p) == 0
-    out = json.loads(p.read_text())
-    dec = out["decisions"][0]
-    assert dec["driver"] is None            # honest legacy form - no retroactive driver
-    assert dec["options_considered"] == []
-    assert dec["rejected"] == ["Angular - ceremony"]  # deprecated field carried
-    assert out["contract_version"] == CONTRACT_VERSION
-    ArchitectureOverview.model_validate(out)  # the migrated artifact validates
+def test_migrate_refuses_pre_identity_architecture(tmp_path):
+    payload={"contract_version":"0.7.0","session_id":"s","stack":{"framework":"React"},"components":[],"decisions":[],"non_functionals":{}}
+    p=tmp_path/"architecture.json"; p.write_text(json.dumps(payload))
+    before=p.read_text(); assert migrate_file(p)==1; assert p.read_text()==before

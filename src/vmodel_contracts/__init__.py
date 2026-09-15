@@ -10,6 +10,7 @@ from .vocabulary import (ARTIFACT_LABELS, CONCEPT_DECISION, CONCEPT_OF_OPERATION
                          STAKEHOLDER_CONTEXT, ArtifactName, PipelineStage)
 from .product_scope import (PRODUCT_SCOPE_DEFINITION, SCOPE_DECLINE_PREFIX,
                             SCOPE_IN_SIGNALS, SCOPE_OUT_SIGNALS)
+from .identity import CONCEPT_ALIASES, canonical_concept_id, canonical_technology_id, normalize_identity
 from .runtime import keep_awake_command, run_with_system_awake, system_awake
 from .intake import AppArchetype, IntakeSubmission, ScopeVerdict
 from .compat import ContractVersionMismatch, check_compatible
@@ -20,7 +21,7 @@ from .interview import (
 from .conops import (ConceptDecision, ConceptOption, ConOpsDocument, OperationalScenario, StakeholderContext)
 from .needs import StakeholderNeed, StakeholderNeedsSet
 from .requirements import AcceptanceCriterion, Priority, Requirement, RequirementKind, RequirementSet
-from .architecture import ArchitectureDecision, ArchitectureOverview, ComponentSpec, StackEntry
+from .architecture import ArchitectureDecision, ArchitectureOverview, TechnologySelection, ComponentSpec, StackEntry
 from .baseline import BaselineMode, RepositoryManifest, SystemBaseline
 from .spec import (
     BuildMilestone,
@@ -55,6 +56,7 @@ __all__ = [
     "CONCEPT_OF_OPERATIONS", "CONCEPT_OPTION", "CONCEPT_DECISION",
     "OPERATIONAL_SCENARIO", "STAKEHOLDER_CONTEXT",
     "PRODUCT_SCOPE_DEFINITION", "SCOPE_DECLINE_PREFIX", "SCOPE_IN_SIGNALS", "SCOPE_OUT_SIGNALS",
+    "CONCEPT_ALIASES", "canonical_concept_id", "canonical_technology_id", "normalize_identity",
     "keep_awake_command", "run_with_system_awake", "system_awake",
     "AppArchetype",
     "IntakeSubmission",
@@ -72,7 +74,7 @@ __all__ = [
     "Priority",
     "Requirement", "RequirementKind",
     "RequirementSet",
-    "ArchitectureDecision",
+    "ArchitectureDecision", "TechnologySelection",
     "ArchitectureOverview",
     "ComponentSpec",
     "StackEntry",

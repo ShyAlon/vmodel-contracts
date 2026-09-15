@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from pydantic import Field, model_validator
 
+from .identity import canonical_concept_id
+
 from .base import ContractModel
 
 
@@ -47,6 +49,7 @@ class OperationalScenario(ContractModel):
 class ConceptOption(ContractModel):
     """One product-level operating concept in the founder's comparison."""
 
+    concept_id: str = Field(pattern=r"^concept:[a-z0-9][a-z0-9-]*$", description="Canonical concept identity; prose aliases never cross this boundary.")
     name: str = Field(min_length=1, description="Concept name, e.g. native app, PWA, web plus native bridge.")
     summary: str = Field(min_length=1)
     advantages: list[str] = Field(min_length=1)
@@ -56,7 +59,8 @@ class ConceptOption(ContractModel):
 class ConceptDecision(ContractModel):
     """The explicit founder decision. This is a stronger constraint than a tech preference."""
 
-    selected_concept: str = Field(min_length=1, description="Exact name of one compared concept option.")
+    selected_concept_id: str = Field(pattern=r"^concept:[a-z0-9][a-z0-9-]*$")
+    selected_concept: str = Field(min_length=1, description="Display name of the selected concept.")
     rationale: str = Field(min_length=1, description="Why the founder selected this concept given its trade-offs.")
     founder_confirmed: bool = Field(
         description="Must be true: silence, model inference, or a provisional suggestion is not a decision."
@@ -68,6 +72,21 @@ class ConceptDecision(ContractModel):
 
 class ConOpsDocument(ContractModel):
     """Versioned output of the CONOPS interview stage."""
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_concept_ids_at_boundary(cls, data):
+        if not isinstance(data, dict):
+            return data
+        out = dict(data)
+        options = [dict(o) for o in out.get("concept_options", [])]
+        for option in options:
+            option.setdefault("concept_id", canonical_concept_id(str(option.get("name", ""))))
+        out["concept_options"] = options
+        decision = dict(out.get("decision") or {})
+        decision.setdefault("selected_concept_id", canonical_concept_id(str(decision.get("selected_concept", ""))))
+        out["decision"] = decision
+        return out
 
     session_id: str = Field(min_length=1)
     stakeholder_context: list[StakeholderContext] = Field(min_length=1)
@@ -82,8 +101,14 @@ class ConOpsDocument(ContractModel):
         names = [o.name for o in self.concept_options]
         if len({n.casefold() for n in names}) != len(names):
             raise ValueError("concept option names must be unique")
-        if self.decision.selected_concept.casefold() not in {n.casefold() for n in names}:
-            raise ValueError("selected_concept must name one concept_options entry")
+        ids = [o.concept_id for o in self.concept_options]
+        if len(set(ids)) != len(ids):
+            raise ValueError("concept option ids must be unique")
+        selected = next((o for o in self.concept_options if o.concept_id == self.decision.selected_concept_id), None)
+        if selected is None:
+            raise ValueError("selected_concept_id must reference one concept_options entry")
+        if self.decision.selected_concept.casefold() != selected.name.casefold():
+            raise ValueError("selected_concept display name must match selected_concept_id")
         if not self.decision.founder_confirmed:
             raise ValueError("CONOPS decision must be explicitly founder-confirmed")
         scenario_ids = [s.scenario_id for s in self.operational_scenarios]

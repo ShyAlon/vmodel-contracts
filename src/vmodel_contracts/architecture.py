@@ -3,9 +3,10 @@ from __future__ import annotations
 
 from enum import Enum
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from .base import ContractModel
+from .identity import normalize_identity
 
 
 class ComponentSpec(ContractModel):
@@ -46,6 +47,22 @@ class ConsideredOption(ContractModel):
     reason: str = Field(description="Why it lost - one prose sentence.")
 
 
+
+class TechnologySelection(ContractModel):
+    slot_id: str = Field(pattern=r"^slot:[a-z0-9][a-z0-9-]*$")
+    technology_id: str = Field(pattern=r"^(tech|off-list):[a-z0-9][a-z0-9-]*$")
+    display_name: str = Field(min_length=1)
+    baseline_refs: list[str] = Field(default_factory=list)
+    off_list_justification: str | None = None
+
+    @model_validator(mode="after")
+    def off_list_is_explained(self):
+        if self.technology_id.startswith("off-list:") and not (self.off_list_justification or "").strip():
+            raise ValueError("off-list technology requires off_list_justification")
+        if not self.technology_id.startswith("off-list:") and self.off_list_justification is not None:
+            raise ValueError("off_list_justification belongs only to off-list technology")
+        return self
+
 class ArchitectureDecision(ContractModel):
     """One ADR, kept short. Rationale is load-bearing; options rejected are
     what stop the coding agent from 'improving' the architecture mid-build.
@@ -83,6 +100,8 @@ class ArchitectureDecision(ContractModel):
         default_factory=list,
         description="Baseline repository names changed by a migration; required when migration is true.",
     )
+    executes_concept_ids: list[str] = Field(default_factory=list)
+    technology_selections: list[TechnologySelection] = Field(default_factory=list)
     rejected: list[str] = Field(
         default_factory=list,
         description="DEPRECATED 0.8.0 - kept so 0.7.x payloads parse; new producers leave it empty.",
@@ -107,6 +126,8 @@ class StackEntry(ContractModel):
         default_factory=list,
         description="Canonical SystemBaseline refs supporting the choice; [] marks a migration choice.",
     )
+    decision_id: str = Field(pattern=r"^ADR-\d+$", description="ADR that owns this projected selection.")
+    technology_id: str = Field(pattern=r"^(tech|off-list):[a-z0-9][a-z0-9-]*$")
     migration_adr_id: str | None = Field(
         default=None,
         pattern=r"^ADR-\d+$",
@@ -131,4 +152,17 @@ class ArchitectureOverview(ContractModel):
         default_factory=dict,
         description="Security, privacy, performance, scaling positions - each one checkable, each one traced.",
     )
+
+    @model_validator(mode="after")
+    def stack_is_adr_projection(self):
+        selections = [(d.decision_id, x) for d in self.decisions for x in d.technology_selections]
+        slot_ids = [x.slot_id for _, x in selections]
+        if len(slot_ids) != len(set(slot_ids)):
+            raise ValueError("technology selection slot ids must be unique across ADRs")
+        projected = {(x.slot_id.removeprefix("slot:"), x.technology_id, did) for did, x in selections}
+        actual = {(normalize_identity(e.key), e.technology_id, e.decision_id) for e in self.stack_entries}
+        if projected != actual:
+            raise ValueError("stack_entries must be the exact projection of ADR technology_selections")
+        return self
+
 

@@ -18,7 +18,7 @@ from vmodel_contracts.migrate import migrate_file
 
 
 def _entry(**over):
-    base = {"key": "language", "value": "Python 3.14",
+    base = {"key": "language", "value": "Python 3.14", "technology_id":"tech:python", "decision_id":"ADR-1",
             "baseline_refs": ["runtime:spec-generator:1"], "migration_adr_id": None}
     return {**base, **over}
 
@@ -26,7 +26,7 @@ def _entry(**over):
 def _overview(**over):
     base = {"session_id": "s", "baseline_id": "b",
             "stack_entries": [_entry()],
-            "components": [], "decisions": [], "non_functionals": {}}
+            "components": [], "decisions": [{"decision_id":"ADR-1","title":"Language","decision":"Python","rationale":"fit","driver":"simplicity","options_considered":[],"executes_concept_ids":[],"technology_selections":[{"slot_id":"slot:language","technology_id":"tech:python","display_name":"Python 3.14","baseline_refs":["runtime:spec-generator:1"]}]}], "non_functionals": {}}
     return {**base, **over}
 
 
@@ -52,38 +52,12 @@ def test_overview_requires_typed_entries_and_rejects_the_parallel_maps():
             _overview(stack_entries=[{"language": "Python"}]))
 
 
-def test_migrate_heals_a_grounded_0120_artifact(tmp_path):
-    payload = {"contract_version": "0.12.0", "session_id": "s", "baseline_id": "b",
-               "stack": {"language": "Python", "database": "PostgreSQL"},
-               "stack_baseline_refs": {"language": ["runtime:spec-generator:1"],
-                                       "database": []},
-               "components": [], "decisions": [], "non_functionals": {}}
-    p = tmp_path / "architecture.json"
-    p.write_text(json.dumps(payload))
-    assert migrate_file(p) == 0
-    out = json.loads(p.read_text())
-    assert "stack" not in out and "stack_baseline_refs" not in out
-    assert out["stack_entries"] == [
-        {"contract_version": CONTRACT_VERSION, "key": "language", "value": "Python",
-         "baseline_refs": ["runtime:spec-generator:1"], "migration_adr_id": None},
-        {"contract_version": CONTRACT_VERSION, "key": "database", "value": "PostgreSQL",
-         "baseline_refs": [], "migration_adr_id": None}]
-    assert out["contract_version"] == CONTRACT_VERSION
-    ArchitectureOverview.model_validate(out)  # the healed artifact validates
-
-
-def test_migrate_heals_a_pre_grounding_artifact_with_no_refs_map(tmp_path):
-    # pre-0.12.0 artifacts have `stack` only: refs were never recorded, which
-    # is honest ("not recorded"), not ambiguous.
-    payload = {"contract_version": "0.8.0", "session_id": "s", "baseline_id": "b",
-               "stack": {"language": "Python"},
-               "components": [], "decisions": [], "non_functionals": {}}
-    p = tmp_path / "architecture.json"
-    p.write_text(json.dumps(payload))
-    assert migrate_file(p) == 0
-    out = json.loads(p.read_text())
-    assert out["stack_entries"][0]["baseline_refs"] == []
-    ArchitectureOverview.model_validate(out)
+def test_migrate_refuses_pre_identity_stack_shapes(tmp_path):
+    payload={"contract_version":"0.12.0","session_id":"s","baseline_id":"b","stack":{"language":"Python"},"components":[],"decisions":[],"non_functionals":{}}
+    p=tmp_path/"architecture.json";p.write_text(json.dumps(payload));before=p.read_text()
+    assert migrate_file(p)==1
+    # migration is transactional: semantic identity/ADR ownership is never invented
+    assert p.read_text()==before
 
 
 def test_migrate_refuses_the_phi4_failure_shape(tmp_path):
