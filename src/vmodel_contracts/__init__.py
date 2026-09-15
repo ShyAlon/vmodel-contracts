@@ -13,6 +13,7 @@ from .product_scope import (PRODUCT_SCOPE_DEFINITION, SCOPE_DECLINE_PREFIX,
 from .identity import CONCEPT_ALIASES, canonical_concept_id, canonical_technology_id, normalize_identity
 from .runtime import keep_awake_command, run_with_system_awake, system_awake
 from .intake import AppArchetype, IntakeSubmission, ScopeVerdict
+from .intent_rubric import DELEGATION_DOCTRINE, INTENT_GATE_RUBRIC, intent_gate_instructions
 from .compat import ContractVersionMismatch, check_compatible
 from .interview import (
     Assumption, IntentNeed, ResearchBrief, InterviewTurn, InterviewTranscript, IntentModel, ScopeExclusion,
@@ -58,6 +59,7 @@ __all__ = [
     "PRODUCT_SCOPE_DEFINITION", "SCOPE_DECLINE_PREFIX", "SCOPE_IN_SIGNALS", "SCOPE_OUT_SIGNALS",
     "CONCEPT_ALIASES", "canonical_concept_id", "canonical_technology_id", "normalize_identity",
     "keep_awake_command", "run_with_system_awake", "system_awake",
+    "DELEGATION_DOCTRINE", "INTENT_GATE_RUBRIC", "intent_gate_instructions",
     "AppArchetype",
     "IntakeSubmission",
     "ScopeVerdict",
