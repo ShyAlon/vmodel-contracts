@@ -6,7 +6,7 @@ release of this package.
 """
 from .version import CONTRACT_VERSION
 from .vocabulary import (ARTIFACT_LABELS, CONCEPT_DECISION, CONCEPT_OF_OPERATIONS,
-                         CONCEPT_OPTION, OPERATIONAL_SCENARIO, STAGE_LABELS,
+                         CONCEPT_OPTION, OPERATIONAL_SCENARIO, STAGE_LABELS, CANONICAL_STAGE_IDS,
                          STAKEHOLDER_CONTEXT, ArtifactName, PipelineStage)
 from .product_scope import (PRODUCT_SCOPE_DEFINITION, SCOPE_DECLINE_PREFIX,
                             SCOPE_IN_SIGNALS, SCOPE_OUT_SIGNALS)
@@ -51,7 +51,7 @@ from . import text_qa
 
 __all__ = [
     "CONTRACT_VERSION", "check_compatible", "ContractVersionMismatch",
-    "PipelineStage", "STAGE_LABELS", "ArtifactName", "ARTIFACT_LABELS",
+    "PipelineStage", "STAGE_LABELS", "CANONICAL_STAGE_IDS", "ArtifactName", "ARTIFACT_LABELS",
     "CONCEPT_OF_OPERATIONS", "CONCEPT_OPTION", "CONCEPT_DECISION",
     "OPERATIONAL_SCENARIO", "STAKEHOLDER_CONTEXT",
     "PRODUCT_SCOPE_DEFINITION", "SCOPE_DECLINE_PREFIX", "SCOPE_IN_SIGNALS", "SCOPE_OUT_SIGNALS",

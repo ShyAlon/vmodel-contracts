@@ -12,6 +12,10 @@ from enum import Enum
 class PipelineStage(str, Enum):
     INTAKE = "intake"
     INTERVIEW = "interview"
+    SCOPE_TIEBREAK = "scope_tiebreak"
+    PROBING = "probing"
+    DISTILLATION = "distillation"
+    PHRASING = "phrasing"
     CONOPS = "conops"
     NEEDS = "needs"
     SRS = "srs"
@@ -27,6 +31,10 @@ class PipelineStage(str, Enum):
 STAGE_LABELS: dict[PipelineStage, str] = {
     PipelineStage.INTAKE: "Intake",
     PipelineStage.INTERVIEW: "Interview",
+    PipelineStage.SCOPE_TIEBREAK: "Scope Tiebreak",
+    PipelineStage.PROBING: "Interview Probing",
+    PipelineStage.DISTILLATION: "Intent Distillation",
+    PipelineStage.PHRASING: "Question Phrasing",
     PipelineStage.CONOPS: "Concept of Operations",
     PipelineStage.NEEDS: "Stakeholder Needs",
     PipelineStage.SRS: "Software Requirements Specification",
@@ -73,3 +81,6 @@ CONCEPT_OPTION = "concept option"
 CONCEPT_DECISION = "concept decision"
 OPERATIONAL_SCENARIO = "operational scenario"
 STAKEHOLDER_CONTEXT = "stakeholder context"
+
+
+CANONICAL_STAGE_IDS: frozenset[str] = frozenset(stage.value for stage in PipelineStage)

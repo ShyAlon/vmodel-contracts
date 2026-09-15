@@ -48,3 +48,8 @@ def test_artifacts_root_override_wins_absolute_and_relative(tmp_path):
     assert artifacts_root("out", cwd=repo) == (repo / "out").resolve()
     assert artifacts_root("", cwd=repo) == (tmp_path / "require" / "artifacts").resolve()
     assert artifacts_root(None, cwd=repo) == (tmp_path / "require" / "artifacts").resolve()
+
+def test_session_artifacts_layout(tmp_path):
+    from vmodel_contracts.runtime import session_artifacts_dir
+    repo=tmp_path/'require'/'interview-engine';repo.mkdir(parents=True)
+    assert session_artifacts_dir('s','interview',cwd=repo)==tmp_path/'require'/'artifacts'/'s'/'interview'

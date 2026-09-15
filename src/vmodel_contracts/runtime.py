@@ -68,3 +68,11 @@ def artifacts_root(override: str | None = None, cwd: Path | None = None) -> Path
         p = Path(override).expanduser()
         return (p if p.is_absolute() else base / p).resolve()
     return (base.parent / "artifacts").resolve()
+
+
+def session_artifacts_dir(session_id: str, component: str | None = None,
+                          override: str | None = None, cwd: Path | None = None) -> Path:
+    """Canonical run layout: <artifacts>/<session>[/<component>]."""
+    root=artifacts_root(override,cwd)
+    base=root/session_id
+    return base/component if component else base
