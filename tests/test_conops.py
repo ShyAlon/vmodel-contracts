@@ -54,3 +54,11 @@ def test_conops_needs_real_comparison_and_unique_scenarios():
     p = _payload(); p["operational_scenarios"].append(dict(p["operational_scenarios"][0]))
     with pytest.raises(ValidationError, match="scenario ids"):
         ConOpsDocument.model_validate(p)
+
+def test_migrate_014_conops_adds_canonical_ids(tmp_path):
+    import json
+    from vmodel_contracts.migrate import migrate_file
+    p=tmp_path/"conops.json"; old=_payload(); old["contract_version"]="0.14.3"; p.write_text(json.dumps(old))
+    assert migrate_file(p)==0
+    out=json.loads(p.read_text())
+    assert out["decision"]["selected_concept_id"]=="concept:native-app"

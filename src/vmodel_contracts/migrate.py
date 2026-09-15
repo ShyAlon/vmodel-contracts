@@ -21,6 +21,7 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from .architecture import ArchitectureOverview
+from .conops import ConOpsDocument
 from .compat import ContractVersionMismatch, check_compatible
 from .interview import IntentModel
 from .baseline import SystemBaseline
@@ -109,6 +110,8 @@ def _synthesize_013(payload: dict) -> list[str]:
 
 def _detect_schema(payload: dict):
     """Which contract model validates this payload. Shape sniff, ordered."""
+    if "stakeholder_context" in payload and "concept_options" in payload and "decision" in payload:
+        return ConOpsDocument
     if "stakeholder_needs" in payload:
         return IntentModel
     if "baseline_id" in payload and "mode" in payload and "repositories" in payload:
@@ -161,7 +164,10 @@ def migrate_file(path: Path) -> int:
     # payload is otherwise a legal current-version artifact.
     schema = _detect_schema(payload)
     try:
-        schema.model_validate(payload)
+        validated = schema.model_validate(payload)
+        if schema is ConOpsDocument:
+            payload = validated.model_dump(mode="json")
+            synthesized.append("concept ids: resolved from canonical alias registry")
     except ValidationError as e:
         print(f"Error: {path} is NOT compatible with vmodel-contracts {CONTRACT_VERSION} - refusing to re-stamp.",
               file=sys.stderr)
