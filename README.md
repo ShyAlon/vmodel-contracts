@@ -21,3 +21,38 @@ Consumers (each pins an exact release, e.g. `vmodel-contracts @ git+https://gith
 3. `pip install -e .[dev] && vmodel-contracts-export` dumps JSON Schemas to
    `schemas/`; the schema diff between releases IS the compatibility review.
 4. A field that crosses a boundary exists here first. No ad-hoc JSON.
+
+## Artifact lifecycle
+
+`vmodel_contracts.artifact_lifecycle` is the canonical vocabulary for durable
+artifacts across interview, specification, verification, and delivery. It is a
+small transition contract, not a second workflow engine.
+
+States: `missing`, `partial`, `complete`, `stale`, `invalidated`, `migrated`.
+Transitions: `begin`, `checkpoint`, `finalize`, `dependency_changed`,
+`invalidate`, `restart`, `migrate`, `adopt_migration`, `resume`, `delete`.
+Each transition carries guard evidence and appends a `LifecycleEvent` to JSONL.
+`mermaid_diagram()` and `dot_diagram()` render the same transition table used
+by validation, so documentation and code cannot list different arcs.
+
+Guard summary:
+
+| Transition | Guard evidence |
+|---|---|
+| begin | producer ownership; inputs and anchor recorded |
+| checkpoint | monotonic progress; same inputs and anchor |
+| finalize | schema valid; complete; hashes sealed; content hash present |
+| dependency_changed | named changed dependency |
+| invalidate | named boundary; downstream closure computed |
+| restart | producer rerun started under current inputs |
+| migrate | approved migrator; source hash/version; target schema valid |
+| adopt_migration | canonical storage and checkpoint updated atomically; hashes agree |
+| resume | named next artifact and legal outgoing arc |
+| delete | explicit destructive operation |
+
+Explicitly illegal: changing an anchor while claiming `complete`; consuming an
+`invalidated` artifact; overwriting `migrated` canonical data from a stale
+checkpoint; resuming a bounded terminal checkpoint without a named legal arc.
+Phase 1 defines and audits this contract only. Orchestration adoption starts
+with the architecture artifact and proceeds stage by stage after shadow logs
+match existing behavior.

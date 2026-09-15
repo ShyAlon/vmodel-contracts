@@ -14,6 +14,8 @@ from .identity import CONCEPT_ALIASES, canonical_concept_id, canonical_technolog
 from .runtime import keep_awake_command, run_with_system_awake, system_awake
 from .intake import AppArchetype, IntakeSubmission, ScopeVerdict
 from .intent_rubric import DELEGATION_DOCTRINE, INTENT_GATE_RUBRIC, intent_gate_instructions
+from .artifact_lifecycle import (ArtifactState, LifecycleTransition, LifecycleEvent, TRANSITION_TABLE,
+                                 validate_transition, append_lifecycle_event, mermaid_diagram, dot_diagram)
 from .compat import ContractVersionMismatch, check_compatible
 from .interview import (
     Assumption, IntentNeed, ResearchBrief, InterviewTurn, InterviewTranscript, IntentModel, ScopeExclusion,
@@ -59,6 +61,8 @@ __all__ = [
     "PRODUCT_SCOPE_DEFINITION", "SCOPE_DECLINE_PREFIX", "SCOPE_IN_SIGNALS", "SCOPE_OUT_SIGNALS",
     "CONCEPT_ALIASES", "canonical_concept_id", "canonical_technology_id", "normalize_identity",
     "keep_awake_command", "run_with_system_awake", "system_awake",
+    "ArtifactState", "LifecycleTransition", "LifecycleEvent", "TRANSITION_TABLE",
+    "validate_transition", "append_lifecycle_event", "mermaid_diagram", "dot_diagram",
     "DELEGATION_DOCTRINE", "INTENT_GATE_RUBRIC", "intent_gate_instructions",
     "AppArchetype",
     "IntakeSubmission",
