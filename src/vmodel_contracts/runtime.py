@@ -114,3 +114,33 @@ def format_console_line(message: str, ts: float | None = None,
                         level: str | None = None, stream=None) -> str:
     """Canonical timestamp plus optional TTY-safe severity color."""
     return color_console_line(timestamp_console_line(message, ts), level, stream)
+
+
+class PlainLogMirror:
+    """Mirror a text stream to a plain UTF-8 log while preserving TTY behavior."""
+    def __init__(self, terminal, sink):
+        self.terminal, self.sink = terminal, sink
+
+    def write(self, text):
+        import re
+        self.terminal.write(text)
+        self.sink.write(re.sub(r"\x1b\[[0-9;]*m", "", text))
+        self.sink.flush()
+        return len(text)
+
+    def flush(self):
+        self.terminal.flush(); self.sink.flush()
+
+    def isatty(self):
+        return self.terminal.isatty()
+
+    def __getattr__(self, name):
+        return getattr(self.terminal, name)
+
+
+def install_plain_log(path: Path, stream=None):
+    """Return a TTY-preserving stream that also writes a clean timestamped log."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    sink = path.open("a", encoding="utf-8", buffering=1)
+    return PlainLogMirror(stream or sys.stderr, sink)

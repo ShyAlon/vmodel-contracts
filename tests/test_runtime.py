@@ -74,3 +74,17 @@ def test_console_colors_are_tty_aware_and_honor_no_color(monkeypatch):
     assert "\x1b[" not in format_console_line("ok", 0, "success", plain)
     monkeypatch.setenv("NO_COLOR", "1")
     assert "\x1b[" not in format_console_line("ok", 0, "success", tty)
+
+
+def test_plain_log_mirror_preserves_tty_and_strips_ansi(tmp_path):
+    import io
+    from vmodel_contracts.runtime import install_plain_log
+
+    class TTY(io.StringIO):
+        def isatty(self): return True
+    terminal = TTY(); path = tmp_path / "run.log"
+    mirror = install_plain_log(path, terminal)
+    mirror.write("\x1b[32m[12:00:00] ok\x1b[0m\n")
+    assert mirror.isatty() is True
+    assert "\x1b[32m" in terminal.getvalue()
+    assert path.read_text() == "[12:00:00] ok\n"
