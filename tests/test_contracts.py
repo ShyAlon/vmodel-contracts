@@ -254,3 +254,31 @@ def test_empty_llm_response_detail_preserves_provider_envelope_not_messages():
     assert detail["id"] == "msg_1"
     assert detail["response_metadata"]["provider"] == "masked"
     assert "messages" not in detail
+
+
+def test_debug_http_client_captures_full_exchange_without_request_headers(tmp_path, monkeypatch):
+    import json
+    import httpx
+    from vmodel_contracts.runtime import debug_http_client
+
+    sink = tmp_path / "llm-calls.jsonl"
+    monkeypatch.setenv("VMODEL_DEBUG_HTTP", "1")
+    monkeypatch.setenv("VMODEL_LLM_LOG", str(sink))
+    client = debug_http_client(mask=lambda text: text.replace("secret", "MASKED"))
+    request = client.build_request("POST", "https://api.example.test/chat/completions",
+                                   headers={"Authorization": "Bearer secret"},
+                                   json={"model": "m", "messages": [{"role": "user", "content": "debug me"}]})
+    response = httpx.Response(200, request=request, headers={"x-request-id": "req_1"},
+                              json={"id": "resp_1", "choices": [{"finish_reason": "stop", "message": {"content": "", "reasoning_content": "why"}}], "usage": {"completion_tokens_details": {"reasoning_tokens": 4}}})
+    for hook in client.event_hooks["request"]:
+        hook(request)
+    for hook in client.event_hooks["response"]:
+        hook(response)
+    row = json.loads((tmp_path / "debug-http.jsonl").read_text())
+    assert row["request"]["messages"][0]["content"] == "debug me"
+    assert row["response"]["status_code"] == 200
+    assert row["response"]["headers"]["x-request-id"] == "req_1"
+    assert row["response"]["body"]["choices"][0]["message"]["reasoning_content"] == "why"
+    assert row["response"]["body"]["usage"]["completion_tokens_details"]["reasoning_tokens"] == 4
+    assert "authorization" not in row["request"]
+    assert "secret" not in (tmp_path / "debug-http.jsonl").read_text()

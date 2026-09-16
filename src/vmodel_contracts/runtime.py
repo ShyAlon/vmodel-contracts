@@ -166,3 +166,101 @@ def empty_llm_response_detail(response, mask: Callable[[str], str] | None = None
     except (TypeError, ValueError):
         return {"response_type": type(response).__name__,
                 "raw": clean(repr(response))[:2000]}
+
+
+def debug_http_enabled() -> bool:
+    """Explicit opt-in for payload-bearing LLM HTTP diagnostics."""
+    return os.environ.get("VMODEL_DEBUG_HTTP", "").strip().lower() in {"1", "true", "yes", "on"} or bool(
+        os.environ.get("VMODEL_DEBUG_HTTP", "").strip() not in {"", "0", "false", "no", "off"}
+    )
+
+
+def debug_http_path(llm_log: str | None = None) -> Path:
+    """Debug sink next to llm-calls.jsonl, or an explicit path from the env."""
+    configured = os.environ.get("VMODEL_DEBUG_HTTP", "").strip()
+    if configured and configured.lower() not in {"1", "true", "yes", "on"}:
+        return Path(configured).expanduser()
+    sink = llm_log or os.environ.get("VMODEL_LLM_LOG")
+    if sink and sink != "stderr":
+        return Path(sink).expanduser().parent / "debug-http.jsonl"
+    return Path("debug-http.jsonl")
+
+
+def _debug_json(value, mask: Callable[[str], str]):
+    """Round-trip arbitrary SDK objects through JSON while masking secrets."""
+    import json
+    try:
+        return json.loads(mask(json.dumps(value, default=str)))
+    except (TypeError, ValueError):
+        return mask(repr(value))
+
+
+def append_debug_http(record: dict, *, llm_log: str | None = None,
+                      mask: Callable[[str], str] | None = None) -> Path | None:
+    """Append one payload-bearing HTTP diagnostic record when explicitly enabled."""
+    if not debug_http_enabled():
+        return None
+    import json
+    import threading
+    from datetime import datetime, timezone
+
+    clean = mask or (lambda value: value)
+    path = debug_http_path(llm_log)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    event = _debug_json({"ts": datetime.now(timezone.utc).isoformat(), **record}, clean)
+    # One append call is atomic enough for the small local process records and
+    # avoids a module-global lock that would not coordinate separate processes.
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(event, ensure_ascii=False, default=str) + "\n")
+    return path
+
+
+def debug_http_client(*, llm_log: str | None = None,
+                      mask: Callable[[str], str] | None = None):
+    """Return an httpx client that records the exact request/response exchange.
+
+    Request headers are intentionally omitted: they contain bearer credentials.
+    The full JSON request body is retained because this mode is explicit and is
+    used to replay malformed calls. Response headers and the complete raw JSON
+    body are retained, including unknown provider fields and error objects.
+    """
+    if not debug_http_enabled():
+        return None
+    import json
+    import time
+    import httpx
+
+    clean = mask or (lambda value: value)
+
+    def on_request(request):
+        try:
+            raw = request.content.decode("utf-8", errors="replace")
+            body = json.loads(raw)
+        except Exception:
+            body = clean(getattr(request, "content", b"").decode("utf-8", errors="replace"))
+        request.extensions["vmodel_debug_started"] = time.time()
+        request.extensions["vmodel_debug_body"] = body
+
+    def on_response(response):
+        response.read()
+        request = response.request
+        raw = response.content.decode("utf-8", errors="replace")
+        try:
+            body = json.loads(raw)
+        except Exception:
+            body = raw
+        append_debug_http({
+            "event": "http_exchange",
+            "method": request.method,
+            "url": str(request.url),
+            "elapsed_s": round(time.time() - request.extensions.get("vmodel_debug_started", time.time()), 3),
+            "request": request.extensions.get("vmodel_debug_body"),
+            "response": {
+                "status_code": response.status_code,
+                "headers": dict(response.headers),
+                "body": body,
+                "raw_body_chars": len(raw),
+            },
+        }, llm_log=llm_log, mask=clean)
+
+    return httpx.Client(event_hooks={"request": [on_request], "response": [on_response]})
