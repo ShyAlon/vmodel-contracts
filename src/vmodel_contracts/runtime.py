@@ -76,3 +76,15 @@ def session_artifacts_dir(session_id: str, component: str | None = None,
     root=artifacts_root(override,cwd)
     base=root/session_id
     return base/component if component else base
+
+
+def console_timestamp(ts: float | None = None) -> str:
+    """Local wall-clock time for every human-facing runtime progress line."""
+    import time
+
+    return time.strftime("%H:%M:%S", time.localtime(time.time() if ts is None else ts))
+
+
+def timestamp_console_line(message: str, ts: float | None = None) -> str:
+    """Prepend the canonical local HH:MM:SS marker to a console line."""
+    return f"[{console_timestamp(ts)}] {message}"

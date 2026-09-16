@@ -53,3 +53,11 @@ def test_session_artifacts_layout(tmp_path):
     from vmodel_contracts.runtime import session_artifacts_dir
     repo=tmp_path/'require'/'interview-engine';repo.mkdir(parents=True)
     assert session_artifacts_dir('s','interview',cwd=repo)==tmp_path/'require'/'artifacts'/'s'/'interview'
+
+
+def test_console_timestamp_format_is_shared_and_local():
+    from vmodel_contracts.runtime import console_timestamp, timestamp_console_line
+
+    assert console_timestamp(0).count(":") == 2
+    assert timestamp_console_line("  -> Working...", 0).endswith("  -> Working...")
+    assert timestamp_console_line("ok", 0).startswith("[")
