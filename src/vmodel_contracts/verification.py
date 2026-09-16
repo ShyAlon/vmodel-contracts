@@ -11,7 +11,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from enum import Enum
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from .base import ContractModel
 
@@ -60,6 +60,20 @@ class TestDefinition(ContractModel):
     machine-readable subset used by deterministic runners. The LLM owns the
     technical content; code owns only its stable container.
     """
+
+    @model_validator(mode="before")
+    @classmethod
+    def supply_empty_execution_container(cls, data):
+        """Keep the code-owned execution container stable when no metadata exists.
+
+        Forced function calls strongly constrain DeepSeek's shape but do not
+        guarantee every required nested argument. Missing ``execution`` carries
+        no model-authored substance: its canonical honest value is an empty
+        TestExecution, unlike missing procedure steps or outcomes.
+        """
+        if isinstance(data, dict) and "execution" not in data:
+            data = {**data, "execution": {}}
+        return data
 
     preconditions: list[str]
     steps: list[str]
