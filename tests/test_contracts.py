@@ -239,3 +239,18 @@ def test_test_definition_has_one_stable_shape_and_preserves_matrices():
     assert [c.name for c in d.cases] == ["E-1", "E-2"]
     with pytest.raises(ValidationError):
         TestDefinition.model_validate({"setup": [], "execution": [], "verification": []})
+
+
+def test_empty_llm_response_detail_preserves_provider_envelope_not_messages():
+    from vmodel_contracts.runtime import empty_llm_response_detail
+
+    response = type("R", (), {
+        "id": "msg_1", "content": "",
+        "response_metadata": {"finish_reason": "stop", "provider": "deepseek"},
+        "usage_metadata": {"input_tokens": 3, "output_tokens": 0},
+        "additional_kwargs": {"reasoning_content": ""},
+    })()
+    detail = empty_llm_response_detail(response, lambda value: value.replace("deepseek", "masked"))
+    assert detail["id"] == "msg_1"
+    assert detail["response_metadata"]["provider"] == "masked"
+    assert "messages" not in detail

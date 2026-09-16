@@ -144,3 +144,25 @@ def install_plain_log(path: Path, stream=None):
     path.parent.mkdir(parents=True, exist_ok=True)
     sink = path.open("a", encoding="utf-8", buffering=1)
     return PlainLogMirror(stream or sys.stderr, sink)
+
+
+def empty_llm_response_detail(response, mask: Callable[[str], str] | None = None) -> dict:
+    """Return a safe, JSON-serializable diagnostic envelope for empty completions.
+
+    This deliberately excludes request messages. Provider response ids,
+    metadata, usage, and additional fields are enough to diagnose an empty
+    completion without copying founder prompts into routine telemetry.
+    """
+    import json
+
+    clean = mask or (lambda value: value)
+    payload = {"response_type": type(response).__name__}
+    for name in ("id", "content", "response_metadata", "usage_metadata", "additional_kwargs"):
+        value = getattr(response, name, None)
+        if value not in (None, {}, []):
+            payload[name] = value
+    try:
+        return json.loads(clean(json.dumps(payload, default=str)))
+    except (TypeError, ValueError):
+        return {"response_type": type(response).__name__,
+                "raw": clean(repr(response))[:2000]}
