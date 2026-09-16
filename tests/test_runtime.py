@@ -61,3 +61,16 @@ def test_console_timestamp_format_is_shared_and_local():
     assert console_timestamp(0).count(":") == 2
     assert timestamp_console_line("  -> Working...", 0).endswith("  -> Working...")
     assert timestamp_console_line("ok", 0).startswith("[")
+
+
+def test_console_colors_are_tty_aware_and_honor_no_color(monkeypatch):
+    from vmodel_contracts.runtime import format_console_line
+
+    tty = Mock(); tty.isatty.return_value = True
+    plain = Mock(); plain.isatty.return_value = False
+    assert "\x1b[32m" in format_console_line("ok", 0, "success", tty)
+    assert "\x1b[31m" in format_console_line("error", 0, "error", tty)
+    assert "\x1b[33m" in format_console_line("warning", 0, "warning", tty)
+    assert "\x1b[" not in format_console_line("ok", 0, "success", plain)
+    monkeypatch.setenv("NO_COLOR", "1")
+    assert "\x1b[" not in format_console_line("ok", 0, "success", tty)

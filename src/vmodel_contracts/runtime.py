@@ -88,3 +88,29 @@ def console_timestamp(ts: float | None = None) -> str:
 def timestamp_console_line(message: str, ts: float | None = None) -> str:
     """Prepend the canonical local HH:MM:SS marker to a console line."""
     return f"[{console_timestamp(ts)}] {message}"
+
+
+_CONSOLE_COLORS = {"error": "31", "warning": "33", "success": "32"}
+
+
+def color_console_line(message: str, level: str | None = None, stream=None) -> str:
+    """Color a human console line only when its destination is an interactive TTY.
+
+    Redirected output, tee/file logs, CI captures, and NO_COLOR remain plain.
+    """
+    if level not in _CONSOLE_COLORS or os.environ.get("NO_COLOR") is not None:
+        return message
+    destination = stream or sys.stderr
+    try:
+        enabled = destination.isatty()
+    except (AttributeError, OSError):
+        enabled = False
+    if not enabled:
+        return message
+    return f"\x1b[{_CONSOLE_COLORS[level]}m{message}\x1b[0m"
+
+
+def format_console_line(message: str, ts: float | None = None,
+                        level: str | None = None, stream=None) -> str:
+    """Canonical timestamp plus optional TTY-safe severity color."""
+    return color_console_line(timestamp_console_line(message, ts), level, stream)
