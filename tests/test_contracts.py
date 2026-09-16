@@ -282,3 +282,28 @@ def test_debug_http_client_captures_full_exchange_without_request_headers(tmp_pa
     assert row["response"]["body"]["usage"]["completion_tokens_details"]["reasoning_tokens"] == 4
     assert "authorization" not in row["request"]
     assert "secret" not in (tmp_path / "debug-http.jsonl").read_text()
+
+
+def test_list_string_normalizer_handles_live_conops_shape():
+    from vmodel_contracts import ConceptOption
+    from vmodel_contracts.normalize import normalize_list_string_fields
+
+    payload = {"concept_id":"concept:agent", "name":"Agent", "summary":"Acts for garage",
+               "advantages":[{"statement":"Fewer manual calls","source_turns":[12]}],
+               "disadvantages":[{"text":"Insurer integration varies","source_turns":[12]}]}
+    fixed = normalize_list_string_fields(payload, ConceptOption)
+    assert fixed["advantages"] == ["Fewer manual calls"]
+    assert fixed["disadvantages"] == ["Insurer integration varies"]
+    assert ConceptOption.model_validate(fixed).advantages == ["Fewer manual calls"]
+
+
+def test_list_string_normalizer_leaves_unknown_objects_to_fail_loudly():
+    from vmodel_contracts import ConceptOption
+    from vmodel_contracts.normalize import normalize_list_string_fields
+    from pydantic import ValidationError
+
+    payload={"concept_id":"concept:x","name":"x","summary":"x",
+             "advantages":[{"source_turns":[12]}],"disadvantages":["risk"]}
+    fixed=normalize_list_string_fields(payload,ConceptOption)
+    with pytest.raises(ValidationError):
+        ConceptOption.model_validate(fixed)
