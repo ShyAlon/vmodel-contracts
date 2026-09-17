@@ -51,6 +51,7 @@ from .delivery import DeliveryBundle, HandoffFormat, RunLink, RunState, RunStatu
 from .srs import SRSDocument
 from .telemetry import (PRICE_TABLE_VERSION, PRICES_USD_PER_MTOK, RunCostReport,
                         StageTokenUsage, load_price_table, price_for)
+from .runtime import AdaptiveCallWatchdog, AdaptiveWatchdogTimeout, parse_expert_verdict
 from . import text_qa
 
 __all__ = [
@@ -114,6 +115,7 @@ __all__ = [
     "PRICES_USD_PER_MTOK",
     "load_price_table",
     "price_for",
+    "AdaptiveCallWatchdog", "AdaptiveWatchdogTimeout", "parse_expert_verdict",
     "text_qa",
 ]
 

@@ -88,3 +88,30 @@ def test_plain_log_mirror_preserves_tty_and_strips_ansi(tmp_path):
     assert mirror.isatty() is True
     assert "\x1b[32m" in terminal.getvalue()
     assert path.read_text() == "[12:00:00] ok\n"
+
+
+def test_adaptive_watchdog_cold_start_and_quick_baseline_floor():
+    from vmodel_contracts.runtime import AdaptiveCallWatchdog
+    watch = AdaptiveCallWatchdog(multiplier=8, floor_s=240)
+    assert watch.deadline("architecture") == (240, None)
+    watch.complete("architecture", 2)
+    assert watch.deadline("architecture") == (240, 2)
+    watch.complete("architecture", 30)
+    # Median 16, 8x=128: the absolute floor still prevents a false positive.
+    assert watch.deadline("architecture") == (240, 16)
+    watch.complete("architecture", 30)
+    assert watch.deadline("architecture") == (240, 30)
+    watch.complete("architecture", 40)
+    # Median 30 now raises the deadline above the floor.
+    assert watch.deadline("architecture") == (240, 30)
+
+
+def test_parse_expert_verdict_accepts_fenced_json_and_rejects_garbage():
+    from vmodel_contracts.runtime import parse_expert_verdict
+    blob='''```json
+{"action":"REGENERATE","stakeholderNeeds":[{"id":"SN-1"}],"feedback":"Fix trace links"}
+```'''
+    assert parse_expert_verdict(blob, ("approve", "regenerate")) == {
+        "action":"regenerate", "feedback":"Fix trace links",
+        "rationale":"No separate rationale supplied."}
+    assert parse_expert_verdict("not a verdict", ("approve", "regenerate")) is None

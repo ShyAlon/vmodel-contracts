@@ -264,3 +264,91 @@ def debug_http_client(*, llm_log: str | None = None,
         }, llm_log=llm_log, mask=clean)
 
     return httpx.Client(event_hooks={"request": [on_request], "response": [on_response]})
+
+
+class AdaptiveCallWatchdog:
+    """Process-local per-stage wall-clock baseline for LLM calls.
+
+    The first call gets the full floor. Later calls use the larger of the
+    floor and K times that stage's running median, so one unusually fast early
+    call can never create an aggressive deadline.
+    """
+    def __init__(self, multiplier: float = 8.0, floor_s: float = 240.0):
+        self.multiplier, self.floor_s = multiplier, floor_s
+        self._completed: dict[str, list[float]] = {}
+        import threading
+        self._lock = threading.Lock()
+
+    def deadline(self, stage: str) -> tuple[float, float | None]:
+        import statistics
+        with self._lock:
+            values = list(self._completed.get(stage, ()))
+        median = statistics.median(values) if values else None
+        return max(self.floor_s, self.multiplier * median) if median is not None else self.floor_s, median
+
+    def complete(self, stage: str, duration_s: float) -> None:
+        if duration_s < 0:
+            return
+        with self._lock:
+            self._completed.setdefault(stage, []).append(float(duration_s))
+
+    def reset(self) -> None:
+        with self._lock:
+            self._completed.clear()
+
+
+class AdaptiveWatchdogTimeout(TimeoutError):
+    def __init__(self, stage: str, elapsed_s: float, deadline_s: float, median_s: float | None):
+        self.stage, self.elapsed_s, self.deadline_s, self.median_s = stage, elapsed_s, deadline_s, median_s
+        super().__init__(f"{stage} exceeded adaptive watchdog deadline {deadline_s:.0f}s")
+
+    @property
+    def ratio(self) -> float | None:
+        return self.elapsed_s / self.median_s if self.median_s else None
+
+
+def parse_expert_verdict(text: str, allowed: tuple[str, ...]) -> dict | None:
+    """Deterministically read a line-protocol or JSON expert verdict."""
+    import json
+    allowed_set = {value.lower() for value in allowed}
+    lines = [line.strip() for line in text.strip().splitlines() if line.strip()]
+    index = next((i for i, line in enumerate(lines)
+                  if line.rstrip(" :.").lower() in allowed_set), None)
+    if index is not None:
+        action = lines[index].rstrip(" :.").lower()
+        rest = "\n".join(lines[index + 1:])
+        feedback = ""
+        for marker in ("\nFEEDBACK:", "\nfeedback:"):
+            if marker in "\n" + rest:
+                before, feedback = ("\n" + rest).split(marker, 1)
+                rest = before.strip()
+                break
+        rationale = rest.removeprefix("RATIONALE:").removeprefix("rationale:").strip()
+        return {"action": action, "feedback": feedback.strip(),
+                "rationale": rationale or "No separate rationale supplied."}
+
+    # Provider may ignore the plain-text protocol and emit a fenced or inline
+    # object. Decode the first balanced object and trust only known actions.
+    start = text.find("{")
+    if start < 0:
+        return None
+    depth = 0; in_string = False; escaped = False
+    for end in range(start, len(text)):
+        char = text[end]
+        if in_string:
+            if escaped: escaped = False
+            elif char == "\\": escaped = True
+            elif char == '"': in_string = False
+        elif char == '"': in_string = True
+        elif char == "{": depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                try: payload = json.loads(text[start:end + 1])
+                except (json.JSONDecodeError, TypeError): return None
+                action = str(payload.get("action", "")).strip().lower() if isinstance(payload, dict) else ""
+                if action not in allowed_set: return None
+                return {"action": action,
+                        "feedback": str(payload.get("feedback") or "").strip(),
+                        "rationale": str(payload.get("rationale") or "No separate rationale supplied.").strip()}
+    return None
