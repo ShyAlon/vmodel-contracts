@@ -325,7 +325,8 @@ def parse_expert_verdict(text: str, allowed: tuple[str, ...]) -> dict | None:
                 break
         rationale = rest.removeprefix("RATIONALE:").removeprefix("rationale:").strip()
         return {"action": action, "feedback": feedback.strip(),
-                "rationale": rationale or "No separate rationale supplied."}
+                "rationale": rationale or "No separate rationale supplied.",
+                "extracted_from": "line_protocol"}
 
     # Provider may ignore the plain-text protocol and emit a fenced or inline
     # object. Decode the first balanced object and trust only known actions.
@@ -350,5 +351,6 @@ def parse_expert_verdict(text: str, allowed: tuple[str, ...]) -> dict | None:
                 if action not in allowed_set: return None
                 return {"action": action,
                         "feedback": str(payload.get("feedback") or "").strip(),
-                        "rationale": str(payload.get("rationale") or "No separate rationale supplied.").strip()}
+                        "rationale": str(payload.get("rationale") or "No separate rationale supplied.").strip(),
+                        "extracted_from": "json_object"}
     return None

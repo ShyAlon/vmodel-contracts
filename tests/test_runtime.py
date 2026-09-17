@@ -113,5 +113,5 @@ def test_parse_expert_verdict_accepts_fenced_json_and_rejects_garbage():
 ```'''
     assert parse_expert_verdict(blob, ("approve", "regenerate")) == {
         "action":"regenerate", "feedback":"Fix trace links",
-        "rationale":"No separate rationale supplied."}
+        "rationale":"No separate rationale supplied.", "extracted_from":"json_object"}
     assert parse_expert_verdict("not a verdict", ("approve", "regenerate")) is None
