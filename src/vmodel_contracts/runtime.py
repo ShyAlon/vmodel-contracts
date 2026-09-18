@@ -485,6 +485,11 @@ def validate_expert_objections(feedback: str, reviewed_artifacts: tuple[str, ...
         if len(fields["resolution"].split()) < 3:
             errors.append(f"objection {index} resolution {fields['resolution']!r} is not a concrete change")
             continue
+        quotes = re.findall(r'["“]([^"”]+)["”]', fields["location"])
+        missing_quotes = [quote for quote in quotes if reviewed_text and quote not in reviewed_text]
+        if missing_quotes:
+            errors.append(f"objection {index} quotes text absent from reviewed artifact: {missing_quotes!r}")
+            continue
         objections.append({key: fields[key] for key in ("artifact", "rule", "location", "resolution")})
     return objections, errors
 
