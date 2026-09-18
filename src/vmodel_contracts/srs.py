@@ -5,11 +5,19 @@ architecture/test-stage decisions). Functional and non-functional requirements
 are first-class sections; every requirement traces to stakeholder needs."""
 from __future__ import annotations
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from .base import ContractModel
 from .interview import Assumption
 from .requirements import Requirement
+
+
+class DesignConstraint(ContractModel):
+    """A mandated design-space limit, with interview provenance."""
+    constraint_id: str = Field(pattern=r"^DC-[1-9][0-9]*$")
+    statement: str = Field(min_length=1)
+    source_field: str = Field(default="constraints", pattern=r"^constraints$")
+    source_turns: list[int] = Field(min_length=1)
 
 
 class SRSDocument(ContractModel):
@@ -25,7 +33,11 @@ class SRSDocument(ContractModel):
     non_functional: list[Requirement] = Field(description="Quality/constraint requirements (kind=non_functional).")
     constraints: list[str] = Field(
         default_factory=list,
-        description="Design-space limits carried from intent (mandated stack, budget, deadlines).",
+        description="Legacy flat view of design-space limits; new consumers use design_constraints.",
+    )
+    design_constraints: list[DesignConstraint] = Field(
+        default_factory=list,
+        description="Mandated solution constraints, each traced to exact interview turns.",
     )
     assumptions: list[Assumption] = Field(
         default_factory=list,

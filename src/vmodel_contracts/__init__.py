@@ -48,7 +48,7 @@ from .verification import (
     VModelLevel,
 )
 from .delivery import DeliveryBundle, HandoffFormat, RunLink, RunState, RunStatus
-from .srs import SRSDocument
+from .srs import SRSDocument, DesignConstraint
 from .telemetry import (PRICE_TABLE_VERSION, PRICES_USD_PER_MTOK, RunCostReport,
                         StageTokenUsage, load_price_table, price_for)
 from .runtime import AdaptiveCallWatchdog, AdaptiveWatchdogTimeout, parse_expert_verdict, format_expert_review_rounds, validate_expert_objections, classify_expert_objections
@@ -108,7 +108,7 @@ __all__ = [
     "RunLink",
     "RunState",
     "RunStatus",
-    "SRSDocument",
+    "SRSDocument", "DesignConstraint",
     "RunCostReport",
     "StageTokenUsage",
     "PRICE_TABLE_VERSION",
