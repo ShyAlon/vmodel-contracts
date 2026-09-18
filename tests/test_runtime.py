@@ -124,3 +124,17 @@ def test_format_expert_rounds_is_sectioned_wrapped_and_numbered():
     assert "Reviewer objections:\n\nRound 1\n\nRationale:\n  Because" in text
     assert "Feedback:\n  1. Fix trace links.\n  2. Remove solution" in text
     assert "\n  3. Add measurable criteria." in text
+
+
+def test_format_expert_rounds_shows_full_artifact_date_time():
+    from vmodel_contracts.runtime import format_expert_review_rounds
+    text = format_expert_review_rounds([{
+        "artifact_revision": 2,
+        "artifact_saved_at": "2026-09-18T06:45:58.600595+00:00",
+        "artifact_sha256": "7039e3d991a6",
+        "rationale": "Current artifact is coherent.",
+        "feedback": "Fix trace links.",
+    }])
+    assert "Artifact reviewed:" in text
+    assert "revision 2, saved at 2026-09-18T06:45:58.600595+00:00" in text
+    assert "SHA 7039e3d991a6" in text

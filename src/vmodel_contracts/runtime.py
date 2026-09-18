@@ -363,6 +363,15 @@ def format_expert_review_rounds(records: list[dict], width: int = 96) -> str:
     lines = ["Reviewer objections:"]
     for index, record in enumerate(records, 1):
         lines.extend(("", f"Round {index}", ""))
+        saved_at = str(record.get("artifact_saved_at") or "").strip()
+        revision = record.get("artifact_revision")
+        fingerprint = str(record.get("artifact_sha256") or "").strip()
+        if saved_at:
+            # Keep the complete ISO date and time. Review cycles routinely span
+            # days, so a time-of-day-only label is ambiguous to a human reader.
+            revision_text = f"revision {revision}, " if revision is not None else ""
+            sha_text = f", SHA {fingerprint}" if fingerprint else ""
+            lines.extend(("Artifact reviewed:", f"  {revision_text}saved at {saved_at}{sha_text}", ""))
         for label, key in (("Rationale", "rationale"), ("Feedback", "feedback")):
             text = str(record.get(key) or "(none)").strip()
             # Feedback often arrives as several sentences. Number the distinct
