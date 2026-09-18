@@ -254,3 +254,19 @@ def test_upstream_subject_wins_over_own_artifact_destination_phrase():
     own,upstream,errors=classify_expert_objections(line,"architecture",("srs","intent"),'SRS says OAuth')
     assert not own and not errors and upstream[0]["artifact"]=="srs"
     assert '"OAuth"' in upstream[0]["location"]
+
+
+def test_fabricated_quote_invalidates_before_upstream_reclassification():
+    from vmodel_contracts.runtime import classify_expert_objections
+    feedback=('1. OBJECTION: The SRS contains solution-specific details such as "AES-256" and "OAuth", which belong to the architecture stage. '
+              '2. OBJECTION: The SRS includes URL paths and JSON shapes without examples. '
+              '3. OBJECTION: The SRS mentions database and UI widgets without examples. '
+              '4. OBJECTION: The SRS includes named technologies and algorithms without examples. '
+              '5. OBJECTION: The SRS invents artifacts, features, or numbers without examples. '
+              '6. OBJECTION: The SRS requirement statements are not observable shall-statements.')
+    own,upstream,errors=classify_expert_objections(feedback,"architecture",("srs","intent"),
+      'current architecture has no quoted cipher or protocol')
+    assert not own
+    assert len(upstream)==5
+    assert len(errors)==1 and "fabricated evidence" in errors[0]
+    assert all(item["artifact"]=="srs" for item in upstream)

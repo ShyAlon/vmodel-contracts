@@ -508,20 +508,29 @@ def classify_expert_objections(feedback: str, reviewed_artifact: str,
     upstream_names = {name.strip().lower() for name in known_artifacts}
     own, upstream, errors = [], [], []
     remaining = []
-    for raw_line in str(feedback or "").splitlines():
+    # A weak model may put several numbered objections on one physical line.
+    raw_items = re.split(r"(?:^|\s+)\d+[.)](?=\s*OBJECTION:)", str(feedback or ""), flags=re.I)
+    for raw_line in raw_items:
         line = re.sub(r"^\s*\d+[.)]\s*", "", raw_line.strip())
         if not line:
             continue
         lower = line.lower()
-        # Attribute blame to the artifact described as owning the defect. An
-        # own-artifact word in a destination phrase ("belongs to architecture")
-        # must not override the blamed upstream subject ("The SRS contains").
+        # Evidence veracity precedes attribution and specificity. A memorized
+        # quote absent from the current artifact is invalidated, not retried as
+        # a formatting defect and never promoted to an advisory.
+        quotes = re.findall(r'["“]([^"”]+)["”]', line)
+        absent = [quote for quote in quotes if reviewed_text and quote not in reviewed_text]
+        if absent:
+            errors.append(f"fabricated evidence absent from current reviewed artifact: {absent!r}")
+            continue
+        # Attribute blame to the grammatical subject after an optional
+        # OBJECTION prefix. Destination phrases such as "belongs to the
+        # architecture stage" cannot override "The SRS contains...".
         named_upstream = next((name for name in upstream_names
-                               if re.search(rf"(?:^|objection:\s*)(?:the\s+)?{re.escape(name)}\b", lower)
+                               if re.search(rf"^(?:objection:\s*)?(?:the\s+)?{re.escape(name)}\b", lower)
                                or re.search(rf"artifact\s*=\s*{re.escape(name)}\b", lower)), None)
         structured = line.lower().startswith("objection:") and "artifact=" in lower
         if named_upstream and not structured:
-            quotes = re.findall(r'["“]([^"”]+)["”]', line)
             evidence = ", ".join(f'"{value}"' for value in quotes)
             upstream.append({"artifact": named_upstream,
                 "rule": "upstream concern reported by expert reviewer",
