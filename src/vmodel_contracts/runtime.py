@@ -407,6 +407,17 @@ def format_expert_review_rounds(records: list[dict], width: int = 96) -> str:
         rationale = str(record.get("rationale") or "No separate rationale supplied.").strip()
         lines.append("Rationale:")
         lines.extend(textwrap.wrap(rationale, width=width, initial_indent="  ", subsequent_indent="  ") or ["  (none)"])
+        upstream = record.get("upstream_advisories") or []
+        if upstream:
+            lines.append("Upstream advisories:")
+            for advisory_index, advisory in enumerate(upstream, 1):
+                lines.append(f"  {advisory_index}. This concerns the {advisory.get('artifact', 'upstream artifact')}:")
+                for field in ("rule", "location", "resolution"):
+                    label = field.title()
+                    value = str(advisory.get(field) or "(none)").strip()
+                    prefix = f"     {label}: "
+                    lines.extend(textwrap.wrap(value, width=width, initial_indent=prefix,
+                                               subsequent_indent=" " * len(prefix)) or [prefix + "(none)"])
         if unique:
             lines.append("Feedback:")
             for objection_index, objection in enumerate(unique, 1):
@@ -472,3 +483,15 @@ def validate_expert_objections(feedback: str, reviewed_artifacts: tuple[str, ...
             continue
         objections.append({key: fields[key] for key in ("artifact", "rule", "location", "resolution")})
     return objections, errors
+
+
+def classify_expert_objections(feedback: str, reviewed_artifact: str,
+                               known_artifacts: tuple[str, ...]) -> tuple[list[dict], list[dict], list[str]]:
+    """Validate feedback, separating fix-here blockers from upstream advisories."""
+    known = tuple(dict.fromkeys((reviewed_artifact, *known_artifacts)))
+    items, errors = validate_expert_objections(feedback, known)
+    own, upstream = [], []
+    reviewed = reviewed_artifact.strip().lower()
+    for item in items:
+        (own if item["artifact"].strip().lower() == reviewed else upstream).append(item)
+    return own, upstream, errors

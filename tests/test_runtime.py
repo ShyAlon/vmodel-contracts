@@ -175,3 +175,15 @@ def test_expert_round_renderer_deduplicates_items_and_rounds():
       {"rationale":"Still missing.","objections":[objection]}])
     assert text.count("Artifact: srs") == 1
     assert "Round 2: objections identical to round 1" in text
+
+
+def test_upstream_objection_is_advisory_and_renders_labeled():
+    from vmodel_contracts.runtime import classify_expert_objections, format_expert_review_rounds
+    feedback=("OBJECTION: artifact=srs | rule=shall statement grammar | location=R-2 field statement | "
+              "resolution=Rewrite R-2 as a shall statement")
+    own, upstream, errors=classify_expert_objections(feedback,"architecture",("srs",))
+    assert not own and not errors and upstream[0]["artifact"] == "srs"
+    rendered=format_expert_review_rounds([{"rationale":"Upstream issue only.","upstream_advisories":upstream}])
+    assert "Upstream advisories:" in rendered
+    assert "This concerns the srs:" in rendered
+    assert "Rule: shall statement grammar" in rendered
