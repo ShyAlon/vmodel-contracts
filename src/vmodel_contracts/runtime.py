@@ -430,7 +430,11 @@ def format_expert_review_rounds(records: list[dict], width: int = 96) -> str:
                                                subsequent_indent=" " * len(prefix)) or [prefix + "(none)"])
         else:
             feedback = str(record.get("feedback") or "(none)").strip()
-            parts = [p.strip() for p in re.split(r"(?<=[.!?])\s+(?=[A-Z])", feedback) if p.strip()]
+            enumerated = re.split(r"(?:^|\s+)\d+[.)](?=\s|$)", feedback)
+            chunks = [re.sub(r"(?:^|\s+)\d+[.)]\s*$", "", chunk).strip() for chunk in enumerated]
+            chunks = [chunk for chunk in chunks if chunk and not re.fullmatch(r"\d+[.)]?", chunk)]
+            parts = (chunks if len(chunks) > 1 else
+                     [p.strip() for p in re.split(r"(?<=[.!?])\s+(?=[A-Z])", feedback) if p.strip()])
             lines.append("Feedback:")
             for part_index, part in enumerate(parts, 1):
                 prefix = f"  {part_index}. " if len(parts) > 1 else "  "
