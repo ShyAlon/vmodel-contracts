@@ -115,3 +115,12 @@ def test_parse_expert_verdict_accepts_fenced_json_and_rejects_garbage():
         "action":"regenerate", "feedback":"Fix trace links",
         "rationale":"No separate rationale supplied.", "extracted_from":"json_object"}
     assert parse_expert_verdict("not a verdict", ("approve", "regenerate")) is None
+
+
+def test_format_expert_rounds_is_sectioned_wrapped_and_numbered():
+    from vmodel_contracts.runtime import format_expert_review_rounds
+    text=format_expert_review_rounds([{"rationale":"Because the artifact is incomplete.",
+      "feedback":"Fix trace links. Remove solution language. Add measurable criteria."}],width=48)
+    assert "Reviewer objections:\n\nRound 1\n\nRationale:\n  Because" in text
+    assert "Feedback:\n  1. Fix trace links.\n  2. Remove solution" in text
+    assert "\n  3. Add measurable criteria." in text

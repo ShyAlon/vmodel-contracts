@@ -354,3 +354,24 @@ def parse_expert_verdict(text: str, allowed: tuple[str, ...]) -> dict | None:
                         "rationale": str(payload.get("rationale") or "No separate rationale supplied.").strip(),
                         "extracted_from": "json_object"}
     return None
+
+
+def format_expert_review_rounds(records: list[dict], width: int = 96) -> str:
+    """Readable per-round expert objections for console and error blocks."""
+    import re
+    import textwrap
+    lines = ["Reviewer objections:"]
+    for index, record in enumerate(records, 1):
+        lines.extend(("", f"Round {index}", ""))
+        for label, key in (("Rationale", "rationale"), ("Feedback", "feedback")):
+            text = str(record.get(key) or "(none)").strip()
+            # Feedback often arrives as several sentences. Number the distinct
+            # objections while leaving rationale as prose.
+            parts = ([p.strip() for p in re.split(r"(?<=[.!?])\s+(?=[A-Z])", text) if p.strip()]
+                     if label == "Feedback" else [text])
+            lines.append(f"{label}:")
+            for part_index, part in enumerate(parts, 1):
+                prefix = f"  {part_index}. " if label == "Feedback" and len(parts) > 1 else "  "
+                lines.extend(textwrap.wrap(part, width=width, initial_indent=prefix,
+                                           subsequent_indent=" " * len(prefix)) or [prefix + "(none)"])
+    return "\n".join(lines)
