@@ -155,3 +155,23 @@ def test_specific_expert_objection_validation_and_rendering():
                      "Location: ADR-2 field requirement_ids",
                      "Resolution: Add the governing R-4 id to requirement_ids"):
         assert expected in rendered
+
+
+def test_embedded_rationale_after_feedback_is_extracted():
+    from vmodel_contracts.runtime import parse_expert_verdict
+    verdict = parse_expert_verdict(
+        "REGENERATE\nFEEDBACK: OBJECTION: artifact=srs | rule=trace rule | location=R-1 field need_ids | resolution=Add SN-1 to need_ids\nRATIONALE: R-1 has no need trace.",
+        ("approve", "regenerate"))
+    assert verdict["rationale"] == "R-1 has no need trace."
+    assert "RATIONALE:" not in verdict["feedback"]
+
+
+def test_expert_round_renderer_deduplicates_items_and_rounds():
+    from vmodel_contracts.runtime import format_expert_review_rounds
+    objection={"artifact":"srs","rule":"need trace rule","location":"R-1 field need_ids","resolution":"Add SN-1 to need_ids"}
+    near={**objection,"resolution":"Add SN-1 into need_ids"}
+    text=format_expert_review_rounds([
+      {"rationale":"Missing trace.","objections":[objection,near]},
+      {"rationale":"Still missing.","objections":[objection]}])
+    assert text.count("Artifact: srs") == 1
+    assert "Round 2: objections identical to round 1" in text

@@ -316,15 +316,22 @@ def parse_expert_verdict(text: str, allowed: tuple[str, ...]) -> dict | None:
                   if line.rstrip(" :.").lower() in allowed_set), None)
     if index is not None:
         action = lines[index].rstrip(" :.").lower()
-        rest = "\n".join(lines[index + 1:])
-        feedback = ""
-        for marker in ("\nFEEDBACK:", "\nfeedback:"):
-            if marker in "\n" + rest:
-                before, feedback = ("\n" + rest).split(marker, 1)
-                rest = before.strip()
-                break
-        rationale = rest.removeprefix("RATIONALE:").removeprefix("rationale:").strip()
-        return {"action": action, "feedback": feedback.strip(),
+        body_lines = lines[index + 1:]
+        sections = {"rationale": [], "feedback": []}
+        current = "rationale"
+        for line in body_lines:
+            upper = line.upper()
+            if upper.startswith("RATIONALE:"):
+                current = "rationale"
+                sections[current].append(line.split(":", 1)[1].strip())
+            elif upper.startswith("FEEDBACK:"):
+                current = "feedback"
+                sections[current].append(line.split(":", 1)[1].strip())
+            else:
+                sections[current].append(line)
+        rationale = "\n".join(part for part in sections["rationale"] if part).strip()
+        feedback = "\n".join(part for part in sections["feedback"] if part).strip()
+        return {"action": action, "feedback": feedback,
                 "rationale": rationale or "No separate rationale supplied.",
                 "extracted_from": "line_protocol"}
 
@@ -357,25 +364,52 @@ def parse_expert_verdict(text: str, allowed: tuple[str, ...]) -> dict | None:
 
 
 def format_expert_review_rounds(records: list[dict], width: int = 96) -> str:
-    """Readable per-round expert objections for console and error blocks."""
+    """Readable, deduplicated per-round expert objections."""
+    import difflib
     import re
     import textwrap
+
+    def normalized(value) -> str:
+        return re.sub(r"[^a-z0-9]+", " ", str(value).lower()).strip()
+
+    def objection_text(objection: dict) -> str:
+        return " ".join(str(objection.get(key) or "") for key in
+                        ("artifact", "rule", "location", "resolution"))
+
     lines = ["Reviewer objections:"]
+    prior_signatures = []
     for index, record in enumerate(records, 1):
+        objections = record.get("objections") or []
+        # Collapse near-identical items inside a round. Preserve first wording.
+        unique = []
+        for objection in objections:
+            candidate = normalized(objection_text(objection))
+            if any(difflib.SequenceMatcher(None, candidate, normalized(objection_text(old))).ratio() >= .88
+                   for old in unique):
+                continue
+            unique.append(objection)
+        signature = tuple(sorted(normalized(objection_text(item)) for item in unique))
+        identical_to = next((n for n, prior in enumerate(prior_signatures, 1)
+                             if signature and signature == prior), None)
+        prior_signatures.append(signature)
+        if identical_to is not None:
+            lines.extend(("", f"Round {index}: objections identical to round {identical_to}"))
+            continue
+
         lines.extend(("", f"Round {index}", ""))
         saved_at = str(record.get("artifact_saved_at") or "").strip()
         revision = record.get("artifact_revision")
         fingerprint = str(record.get("artifact_sha256") or "").strip()
         if saved_at:
-            # Keep the complete ISO date and time. Review cycles routinely span
-            # days, so a time-of-day-only label is ambiguous to a human reader.
             revision_text = f"revision {revision}, " if revision is not None else ""
             sha_text = f", SHA {fingerprint}" if fingerprint else ""
             lines.extend(("Artifact reviewed:", f"  {revision_text}saved at {saved_at}{sha_text}", ""))
-        objections = record.get("objections") or []
-        if objections:
+        rationale = str(record.get("rationale") or "No separate rationale supplied.").strip()
+        lines.append("Rationale:")
+        lines.extend(textwrap.wrap(rationale, width=width, initial_indent="  ", subsequent_indent="  ") or ["  (none)"])
+        if unique:
             lines.append("Feedback:")
-            for objection_index, objection in enumerate(objections, 1):
+            for objection_index, objection in enumerate(unique, 1):
                 lines.append(f"  {objection_index}.")
                 for field in ("artifact", "rule", "location", "resolution"):
                     label = field.title()
@@ -383,16 +417,12 @@ def format_expert_review_rounds(records: list[dict], width: int = 96) -> str:
                     prefix = f"     {label}: "
                     lines.extend(textwrap.wrap(value, width=width, initial_indent=prefix,
                                                subsequent_indent=" " * len(prefix)) or [prefix + "(none)"])
-            continue
-        for label, key in (("Rationale", "rationale"), ("Feedback", "feedback")):
-            text = str(record.get(key) or "(none)").strip()
-            # Feedback often arrives as several sentences. Number the distinct
-            # objections while leaving rationale as prose.
-            parts = ([p.strip() for p in re.split(r"(?<=[.!?])\s+(?=[A-Z])", text) if p.strip()]
-                     if label == "Feedback" else [text])
-            lines.append(f"{label}:")
+        else:
+            feedback = str(record.get("feedback") or "(none)").strip()
+            parts = [p.strip() for p in re.split(r"(?<=[.!?])\s+(?=[A-Z])", feedback) if p.strip()]
+            lines.append("Feedback:")
             for part_index, part in enumerate(parts, 1):
-                prefix = f"  {part_index}. " if label == "Feedback" and len(parts) > 1 else "  "
+                prefix = f"  {part_index}. " if len(parts) > 1 else "  "
                 lines.extend(textwrap.wrap(part, width=width, initial_indent=prefix,
                                            subsequent_indent=" " * len(prefix)) or [prefix + "(none)"])
     return "\n".join(lines)
