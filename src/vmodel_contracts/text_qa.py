@@ -125,7 +125,7 @@ def srs_draft_findings(draft: dict, interview_text: str) -> list[dict]:
     common_sentence_words = {"each", "upon", "management", "resolution", "when", "while", "if", "then",
                              "where", "after", "before", "the", "system", "user", "users"}
     exemplar = re.compile(r"\b(?:like|such as|e\.g\.|for example)\b", re.I)
-    ears = re.compile(r"^(?:The .+ shall .+|When .+, the .+ shall .+|While .+, the .+ shall .+|If .+, then the .+ shall .+)$", re.I)
+    ears = re.compile(r"^(?:(?:The )?.+ shall .+|When .+, (?:the )?.+ shall .+|While .+, (?:the )?.+ shall .+|If .+, then (?:the )?.+ shall .+)$", re.I)
     for section in ("functional", "non_functional"):
         for requirement in draft.get(section) or []:
             rid = str(requirement.get("requirement_id") or "?")
