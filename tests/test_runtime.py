@@ -187,3 +187,21 @@ def test_upstream_objection_is_advisory_and_renders_labeled():
     assert "Upstream advisories:" in rendered
     assert "This concerns the srs:" in rendered
     assert "Rule: shall statement grammar" in rendered
+
+
+def test_prose_upstream_objection_is_advisory_before_strict_blocker_validation():
+    from vmodel_contracts.runtime import classify_expert_objections
+    feedback='1. OBJECTION: The SRS contains solution-specific details such as "AES-256" and "OAuth".'
+    own, upstream, errors=classify_expert_objections(feedback,"architecture",("srs","needs","intent"))
+    assert not own and not errors
+    assert upstream[0]["artifact"] == "srs"
+    assert '"AES-256"' in upstream[0]["location"] and '"OAuth"' in upstream[0]["location"]
+    assert feedback.split("OBJECTION: ",1)[1] in upstream[0]["detail"]
+
+
+def test_prose_own_artifact_objection_remains_low_specificity():
+    from vmodel_contracts.runtime import classify_expert_objections
+    own, upstream, errors=classify_expert_objections(
+      "OBJECTION: The architecture hierarchy is not adhered to.","architecture",("srs",))
+    assert not own and not upstream
+    assert errors == ["objection 1 has no structured OBJECTION line"]
