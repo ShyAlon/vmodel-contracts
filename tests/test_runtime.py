@@ -138,3 +138,20 @@ def test_format_expert_rounds_shows_full_artifact_date_time():
     assert "Artifact reviewed:" in text
     assert "revision 2, saved at 2026-09-18T06:45:58.600595+00:00" in text
     assert "SHA 7039e3d991a6" in text
+
+
+def test_specific_expert_objection_validation_and_rendering():
+    from vmodel_contracts.runtime import validate_expert_objections, format_expert_review_rounds
+    vague, errors = validate_expert_objections(
+        "The artifact hierarchy and authoring rules are not strictly adhered to.", ("architecture",))
+    assert vague == [] and "no structured OBJECTION" in errors[0]
+    text = ('OBJECTION: artifact=architecture | rule=ADR traceability criterion | '
+            'location=ADR-2 field requirement_ids | resolution=Add the governing R-4 id to requirement_ids')
+    objections, errors = validate_expert_objections(text, ("architecture",))
+    assert not errors and objections[0]["location"] == "ADR-2 field requirement_ids"
+    rendered = format_expert_review_rounds([{"rationale":"Trace is absent.", "feedback":text,
+                                             "objections":objections}])
+    for expected in ("Artifact: architecture", "Rule: ADR traceability criterion",
+                     "Location: ADR-2 field requirement_ids",
+                     "Resolution: Add the governing R-4 id to requirement_ids"):
+        assert expected in rendered

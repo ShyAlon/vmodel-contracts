@@ -372,6 +372,18 @@ def format_expert_review_rounds(records: list[dict], width: int = 96) -> str:
             revision_text = f"revision {revision}, " if revision is not None else ""
             sha_text = f", SHA {fingerprint}" if fingerprint else ""
             lines.extend(("Artifact reviewed:", f"  {revision_text}saved at {saved_at}{sha_text}", ""))
+        objections = record.get("objections") or []
+        if objections:
+            lines.append("Feedback:")
+            for objection_index, objection in enumerate(objections, 1):
+                lines.append(f"  {objection_index}.")
+                for field in ("artifact", "rule", "location", "resolution"):
+                    label = field.title()
+                    value = str(objection.get(field) or "(none)").strip()
+                    prefix = f"     {label}: "
+                    lines.extend(textwrap.wrap(value, width=width, initial_indent=prefix,
+                                               subsequent_indent=" " * len(prefix)) or [prefix + "(none)"])
+            continue
         for label, key in (("Rationale", "rationale"), ("Feedback", "feedback")):
             text = str(record.get(key) or "(none)").strip()
             # Feedback often arrives as several sentences. Number the distinct
@@ -384,3 +396,49 @@ def format_expert_review_rounds(records: list[dict], width: int = 96) -> str:
                 lines.extend(textwrap.wrap(part, width=width, initial_indent=prefix,
                                            subsequent_indent=" " * len(prefix)) or [prefix + "(none)"])
     return "\n".join(lines)
+
+
+def validate_expert_objections(feedback: str, reviewed_artifacts: tuple[str, ...]) -> tuple[list[dict], list[str]]:
+    """Parse and deterministically validate concrete expert objections.
+
+    Protocol, one objection per line:
+    OBJECTION: artifact=<name> | rule=<criterion> | location=<id/section/quote> | resolution=<change>
+    """
+    import re
+    artifact_set = {str(value).strip().lower() for value in reviewed_artifacts if str(value).strip()}
+    lines = [line.strip() for line in str(feedback or "").splitlines() if line.strip()]
+    objections, errors = [], []
+    candidates = [line for line in lines if line.lower().startswith("objection:")]
+    if not candidates:
+        return [], ["objection 1 has no structured OBJECTION line"]
+    for index, line in enumerate(candidates, 1):
+        fields = {}
+        for piece in line.split(":", 1)[1].split("|"):
+            if "=" in piece:
+                key, value = piece.split("=", 1)
+                fields[key.strip().lower()] = value.strip()
+        missing = [key for key in ("artifact", "rule", "location", "resolution") if not fields.get(key)]
+        if missing:
+            errors.append(f"objection {index} missing {', '.join(missing)}")
+            continue
+        artifact = fields["artifact"].lower()
+        if artifact_set and artifact not in artifact_set:
+            errors.append(f"objection {index} names artifact {fields['artifact']!r}, not reviewed artifact(s) {sorted(artifact_set)}")
+            continue
+        location = fields["location"]
+        # A location must point to an identifier, named section/field, or a
+        # quoted source fragment. Generic words such as "artifact" do not pass.
+        concrete_location = (bool(re.search(r"\b(?:SN|N|R|AC|ADR|SPEC|TEST)-[A-Za-z0-9._-]+\b", location, re.I))
+                             or bool(re.search(r"\b(?:section|field|entry|decision|requirement|criterion)\s+[A-Za-z0-9_.-]+", location, re.I))
+                             or bool(re.search(r'["“][^"”]{3,}["”]', location)))
+        if not concrete_location:
+            errors.append(f"objection {index} location {location!r} has no section, id, field, or quoted fragment")
+            continue
+        if len(fields["rule"].split()) < 2:
+            errors.append(f"objection {index} rule {fields['rule']!r} is not a named criterion")
+            continue
+        if len(fields["resolution"].split()) < 3:
+            errors.append(f"objection {index} resolution {fields['resolution']!r} is not a concrete change")
+            continue
+        objections.append({key: fields[key] for key in ("artifact", "rule", "location", "resolution")})
+    return objections, errors
