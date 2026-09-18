@@ -245,3 +245,12 @@ def test_containment_claim_requires_verbatim_example():
     specific=vague.replace("R-1 field statement",'R-1 field statement quotes "OAuth"')
     objections,errors=validate_expert_objections(specific,("srs",),"R-1 has OAuth")
     assert objections and not errors
+
+
+def test_upstream_subject_wins_over_own_artifact_destination_phrase():
+    from vmodel_contracts.runtime import classify_expert_objections
+    line=('OBJECTION: The SRS contains solution-specific details such as "OAuth", '
+          'which should be avoided as they belong to the architecture stage.')
+    own,upstream,errors=classify_expert_objections(line,"architecture",("srs","intent"),'SRS says OAuth')
+    assert not own and not errors and upstream[0]["artifact"]=="srs"
+    assert '"OAuth"' in upstream[0]["location"]

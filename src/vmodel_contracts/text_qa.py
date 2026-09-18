@@ -106,8 +106,10 @@ def ecosystem_recognized(area: str, preference: str) -> bool:
 # Single shared rule table for pre-review SRS linting. Each match preserves the
 # exact offending span so repair feedback and console evidence are actionable.
 SRS_SOLUTION_RULES = (
-    ("named_technology", _TECH_RE),
-    ("http_verb", re.compile(r"\b(?:GET|POST|PUT|PATCH|DELETE)\b", re.I)),
+    # Algorithms and algorithm families express required properties and are
+    # allowed. Binding technology choices remain lintable unless exemplary.
+    ("named_technology", re.compile(r"\b(?:oauth|jwt|saml|openid|postgres(?:ql)?|mysql|mongodb|redis|kafka|rabbitmq|kubernetes|docker|graphql|grpc|websocket|elasticsearch|spark|hadoop|snowflake)\b", re.I)),
+    ("http_verb", re.compile(r"\b(?:GET|POST|PUT|PATCH|DELETE)(?=\s+/(?:api/)?|\s+(?:request|endpoint))")),
     ("http_status", re.compile(r"\b[1-5]\d\d(?:\s+(?:Unauthorized|OK|Found|Error|Created))?\b", re.I)),
     ("url_path", re.compile(r"/(?:api/)?[a-z0-9_{}-]+(?:/[a-z0-9_{}-]+)+", re.I)),
     ("json_shape", re.compile(r"\bJSON\b|\{\s*[\"'][^}]+\}", re.I)),
@@ -117,27 +119,42 @@ SRS_SOLUTION_RULES = (
 
 
 def srs_draft_findings(draft: dict, interview_text: str) -> list[dict]:
-    """Find solution language and ungrounded numbers/entities before review."""
+    """Find binding solution language, inventions, and non-EARS requirements."""
     findings = []
     source_lower = interview_text.lower()
+    common_sentence_words = {"each", "upon", "management", "resolution", "when", "while", "if", "then",
+                             "where", "after", "before", "the", "system", "user", "users"}
+    exemplar = re.compile(r"\b(?:like|such as|e\.g\.|for example)\b", re.I)
+    ears = re.compile(r"^(?:The .+ shall .+|When .+, the .+ shall .+|While .+, the .+ shall .+|If .+, then the .+ shall .+)$", re.I)
     for section in ("functional", "non_functional"):
         for requirement in draft.get(section) or []:
             rid = str(requirement.get("requirement_id") or "?")
-            values = [("title", str(requirement.get("title") or "")),
-                      ("statement", str(requirement.get("statement") or ""))]
+            statement = str(requirement.get("statement") or "").strip()
+            if statement and not ears.match(statement):
+                findings.append({"kind":"structure","rule":"ears_pattern",
+                    "location":f"{rid} field statement","span":statement,
+                    "expected":"The <system> shall <response>; When <trigger>, the <system> shall <response>; While <state>, ...; or If <condition>, then the <system> shall ..."})
+            values = [("title", str(requirement.get("title") or "")), ("statement", statement)]
             values += [(f"acceptance.{item.get('criterion_id','?')}", str(item.get("statement") or ""))
                        for item in requirement.get("acceptance") or []]
             for field, text in values:
                 seen = set()
                 for rule, pattern in SRS_SOLUTION_RULES:
                     for match in pattern.finditer(text):
-                        span = match.group(0)
-                        key = (rule, span.lower())
+                        prefix = text[max(0, match.start()-24):match.start()]
+                        if exemplar.search(prefix):
+                            continue
+                        span = match.group(0); key = (rule, span.lower())
                         if key not in seen:
                             seen.add(key); findings.append({"kind":"solution_language","rule":rule,
                                 "location":f"{rid} field {field}","span":span})
-                for token in re.findall(r"\b\d+(?:\.\d+)?%?\b|\b[A-Z][A-Za-z0-9-]{2,}\b", text):
-                    if token.lower() not in source_lower and token.lower() not in {"the","system"}:
+                for match in re.finditer(r"\b\d+(?:\.\d+)?%?\b|\b[A-Z][A-Za-z0-9-]{2,}\b", text):
+                    token=match.group(0); lower=token.lower()
+                    sentence_initial = match.start()==0 or text[max(0,match.start()-2):match.start()].endswith(". ")
+                    if lower in common_sentence_words or (sentence_initial and lower.isalpha() and lower not in source_lower):
+                        continue
+                    if lower not in source_lower:
                         findings.append({"kind":"potential_invention","rule":"absent_from_interview",
                             "location":f"{rid} field {field}","span":token})
     return findings
+

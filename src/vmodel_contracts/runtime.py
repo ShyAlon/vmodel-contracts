@@ -513,8 +513,12 @@ def classify_expert_objections(feedback: str, reviewed_artifact: str,
         if not line:
             continue
         lower = line.lower()
+        # Attribute blame to the artifact described as owning the defect. An
+        # own-artifact word in a destination phrase ("belongs to architecture")
+        # must not override the blamed upstream subject ("The SRS contains").
         named_upstream = next((name for name in upstream_names
-                               if re.search(rf"\b{re.escape(name)}\b", lower)), None)
+                               if re.search(rf"(?:^|objection:\s*)(?:the\s+)?{re.escape(name)}\b", lower)
+                               or re.search(rf"artifact\s*=\s*{re.escape(name)}\b", lower)), None)
         structured = line.lower().startswith("objection:") and "artifact=" in lower
         if named_upstream and not structured:
             quotes = re.findall(r'["“]([^"”]+)["”]', line)
