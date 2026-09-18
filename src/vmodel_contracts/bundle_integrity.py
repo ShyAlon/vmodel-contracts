@@ -21,6 +21,9 @@ def validate_traceability_graph(needs: StakeholderNeedsSet, requirements: Requir
     need_ids={n.need_id for n in needs.needs}; req_ids=requirements.requirement_ids()
     specs={x.spec_id:x for x in items}; test_by_id={x.test_id:x for x in tests}
     ac_owner={a.criterion_id:r.requirement_id for r in requirements.requirements for a in r.acceptance}
+    for n in needs.needs:
+        if not n.intent_need_ids:
+            out.append(IntegrityDiagnostic("orphan-need", f"needs/{n.need_id}", "traces to no interview stakeholder need"))
     for r in requirements.requirements:
         unknown=sorted(set(r.need_ids)-need_ids)
         if unknown: out.append(IntegrityDiagnostic("unknown-need",f"requirements/{r.requirement_id}",f"references unknown needs {unknown}"))
