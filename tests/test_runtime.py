@@ -226,3 +226,12 @@ def test_feedback_source_numbers_are_stripped_before_render_numbering():
     assert "stage. 2." not in rendered
     assert "avoided. 3." not in rendered
     assert "\n  8." not in rendered
+
+
+def test_objection_quote_must_exist_verbatim_in_reviewed_artifact():
+    from vmodel_contracts.runtime import validate_expert_objections
+    base='OBJECTION: artifact=srs | rule=no invented feature criterion | location=R-1 quotes "{}" | resolution=Remove the invented feature from R-1'
+    good,errors=validate_expert_objections(base.format("OAuth"),("srs",),'R-1 says OAuth')
+    assert good and not errors
+    bad,errors=validate_expert_objections(base.format("SAML"),("srs",),'R-1 says OAuth')
+    assert not bad and "absent from reviewed artifact" in errors[0]

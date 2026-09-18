@@ -443,7 +443,7 @@ def format_expert_review_rounds(records: list[dict], width: int = 96) -> str:
     return "\n".join(lines)
 
 
-def validate_expert_objections(feedback: str, reviewed_artifacts: tuple[str, ...]) -> tuple[list[dict], list[str]]:
+def validate_expert_objections(feedback: str, reviewed_artifacts: tuple[str, ...], reviewed_text: str = "") -> tuple[list[dict], list[str]]:
     """Parse and deterministically validate concrete expert objections.
 
     Protocol, one objection per line:
@@ -490,7 +490,7 @@ def validate_expert_objections(feedback: str, reviewed_artifacts: tuple[str, ...
 
 
 def classify_expert_objections(feedback: str, reviewed_artifact: str,
-                               known_artifacts: tuple[str, ...]) -> tuple[list[dict], list[dict], list[str]]:
+                               known_artifacts: tuple[str, ...], reviewed_text: str = "") -> tuple[list[dict], list[dict], list[str]]:
     """Validate feedback, separating fix-here blockers from upstream advisories."""
     import re
     known = tuple(dict.fromkeys((reviewed_artifact, *known_artifacts)))
@@ -517,7 +517,7 @@ def classify_expert_objections(feedback: str, reviewed_artifact: str,
         else:
             remaining.append(line)
     if remaining:
-        items, strict_errors = validate_expert_objections("\n".join(remaining), known)
+        items, strict_errors = validate_expert_objections("\n".join(remaining), known, reviewed_text)
         errors.extend(strict_errors)
         for item in items:
             (own if item["artifact"].strip().lower() == reviewed else upstream).append(item)
