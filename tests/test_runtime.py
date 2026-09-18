@@ -204,4 +204,4 @@ def test_prose_own_artifact_objection_remains_low_specificity():
     own, upstream, errors=classify_expert_objections(
       "OBJECTION: The architecture hierarchy is not adhered to.","architecture",("srs",))
     assert not own and not upstream
-    assert errors == ["objection 1 has no structured OBJECTION line"]
+    assert errors == ["objection 1 missing artifact, rule, location, resolution"]

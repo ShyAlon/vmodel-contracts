@@ -488,10 +488,33 @@ def validate_expert_objections(feedback: str, reviewed_artifacts: tuple[str, ...
 def classify_expert_objections(feedback: str, reviewed_artifact: str,
                                known_artifacts: tuple[str, ...]) -> tuple[list[dict], list[dict], list[str]]:
     """Validate feedback, separating fix-here blockers from upstream advisories."""
+    import re
     known = tuple(dict.fromkeys((reviewed_artifact, *known_artifacts)))
-    items, errors = validate_expert_objections(feedback, known)
-    own, upstream = [], []
     reviewed = reviewed_artifact.strip().lower()
-    for item in items:
-        (own if item["artifact"].strip().lower() == reviewed else upstream).append(item)
+    upstream_names = {name.strip().lower() for name in known_artifacts}
+    own, upstream, errors = [], [], []
+    remaining = []
+    for raw_line in str(feedback or "").splitlines():
+        line = re.sub(r"^\s*\d+[.)]\s*", "", raw_line.strip())
+        if not line:
+            continue
+        lower = line.lower()
+        named_upstream = next((name for name in upstream_names
+                               if re.search(rf"\b{re.escape(name)}\b", lower)), None)
+        structured = line.lower().startswith("objection:") and "artifact=" in lower
+        if named_upstream and not structured:
+            quotes = re.findall(r'["“]([^"”]+)["”]', line)
+            evidence = ", ".join(f'"{value}"' for value in quotes)
+            upstream.append({"artifact": named_upstream,
+                "rule": "upstream concern reported by expert reviewer",
+                "location": f'quoted fragment(s) {evidence}' if evidence else f"reviewer statement: {line}",
+                "resolution": f"Inspect and correct the named {named_upstream} concern before rewinding that stage",
+                "detail": line})
+        else:
+            remaining.append(line)
+    if remaining:
+        items, strict_errors = validate_expert_objections("\n".join(remaining), known)
+        errors.extend(strict_errors)
+        for item in items:
+            (own if item["artifact"].strip().lower() == reviewed else upstream).append(item)
     return own, upstream, errors
