@@ -205,3 +205,24 @@ def test_prose_own_artifact_objection_remains_low_specificity():
       "OBJECTION: The architecture hierarchy is not adhered to.","architecture",("srs",))
     assert not own and not upstream
     assert errors == ["objection 1 missing artifact, rule, location, resolution"]
+
+
+def test_feedback_source_numbers_are_stripped_before_render_numbering():
+    from vmodel_contracts.runtime import format_expert_review_rounds
+    feedback=('1. OBJECTION: The SRS contains solution-specific details such as "AES-256" and "OAuth", '
+              'which should be avoided as they belong to the architecture stage. 2. '
+              'OBJECTION: Requirement statements include HTTP verbs and status codes, which are not observable '
+              'shall-statements and should be avoided. 3. '
+              'OBJECTION: The SRS includes URL paths and JSON shapes, which are design decisions. 4. '
+              'OBJECTION: The SRS mentions database and UI widgets, which are design decisions. 5. '
+              'OBJECTION: The SRS includes named technologies and algorithms. 6. '
+              'OBJECTION: The SRS invents artifacts, features, or numbers not stated by the stakeholder. 7. '
+              'OBJECTION: The SRS lacks stakeholder traceability.')
+    rendered=format_expert_review_rounds([{"rationale":"Specific concerns.","feedback":feedback}],width=72)
+    assert rendered.count("\n  1. OBJECTION:") == 1
+    for number in range(1,8):
+        assert f"\n  {number}. OBJECTION:" in rendered
+    assert "\n  1. 1." not in rendered
+    assert "stage. 2." not in rendered
+    assert "avoided. 3." not in rendered
+    assert "\n  8." not in rendered
