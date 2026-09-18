@@ -117,6 +117,9 @@ __all__ = [
     "price_for",
     "AdaptiveCallWatchdog", "AdaptiveWatchdogTimeout", "parse_expert_verdict", "format_expert_review_rounds", "validate_expert_objections", "classify_expert_objections",
     "text_qa",
+    "IntegrityDiagnostic", "validate_traceability_graph",
 ]
 
 
+
+from .bundle_integrity import IntegrityDiagnostic, validate_traceability_graph
