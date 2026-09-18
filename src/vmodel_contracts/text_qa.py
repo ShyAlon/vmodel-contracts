@@ -101,3 +101,43 @@ def ecosystem_recognized(area: str, preference: str) -> bool:
         return True
     low = preference.lower()
     return any(name in low for name in names)
+
+
+# Single shared rule table for pre-review SRS linting. Each match preserves the
+# exact offending span so repair feedback and console evidence are actionable.
+SRS_SOLUTION_RULES = (
+    ("named_technology", _TECH_RE),
+    ("http_verb", re.compile(r"\b(?:GET|POST|PUT|PATCH|DELETE)\b", re.I)),
+    ("http_status", re.compile(r"\b[1-5]\d\d(?:\s+(?:Unauthorized|OK|Found|Error|Created))?\b", re.I)),
+    ("url_path", re.compile(r"/(?:api/)?[a-z0-9_{}-]+(?:/[a-z0-9_{}-]+)+", re.I)),
+    ("json_shape", re.compile(r"\bJSON\b|\{\s*[\"'][^}]+\}", re.I)),
+    ("database", re.compile(r"\b(?:database|table|column|row|SQL)\b", re.I)),
+    ("ui_widget", re.compile(r"\b(?:button|text field|checkbox|dropdown|modal|widget)\b", re.I)),
+)
+
+
+def srs_draft_findings(draft: dict, interview_text: str) -> list[dict]:
+    """Find solution language and ungrounded numbers/entities before review."""
+    findings = []
+    source_lower = interview_text.lower()
+    for section in ("functional", "non_functional"):
+        for requirement in draft.get(section) or []:
+            rid = str(requirement.get("requirement_id") or "?")
+            values = [("title", str(requirement.get("title") or "")),
+                      ("statement", str(requirement.get("statement") or ""))]
+            values += [(f"acceptance.{item.get('criterion_id','?')}", str(item.get("statement") or ""))
+                       for item in requirement.get("acceptance") or []]
+            for field, text in values:
+                seen = set()
+                for rule, pattern in SRS_SOLUTION_RULES:
+                    for match in pattern.finditer(text):
+                        span = match.group(0)
+                        key = (rule, span.lower())
+                        if key not in seen:
+                            seen.add(key); findings.append({"kind":"solution_language","rule":rule,
+                                "location":f"{rid} field {field}","span":span})
+                for token in re.findall(r"\b\d+(?:\.\d+)?%?\b|\b[A-Z][A-Za-z0-9-]{2,}\b", text):
+                    if token.lower() not in source_lower and token.lower() not in {"the","system"}:
+                        findings.append({"kind":"potential_invention","rule":"absent_from_interview",
+                            "location":f"{rid} field {field}","span":token})
+    return findings

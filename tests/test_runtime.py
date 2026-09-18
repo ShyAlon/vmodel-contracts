@@ -235,3 +235,13 @@ def test_objection_quote_must_exist_verbatim_in_reviewed_artifact():
     assert good and not errors
     bad,errors=validate_expert_objections(base.format("SAML"),("srs",),'R-1 says OAuth')
     assert not bad and "absent from reviewed artifact" in errors[0]
+
+
+def test_containment_claim_requires_verbatim_example():
+    from vmodel_contracts.runtime import validate_expert_objections
+    vague=('OBJECTION: artifact=srs | rule=contains invented features | location=R-1 field statement | '
+           'resolution=Remove invented features from R-1')
+    assert "requires a quoted artifact example" in validate_expert_objections(vague,("srs",),"R-1 has OAuth")[1][0]
+    specific=vague.replace("R-1 field statement",'R-1 field statement quotes "OAuth"')
+    objections,errors=validate_expert_objections(specific,("srs",),"R-1 has OAuth")
+    assert objections and not errors

@@ -486,6 +486,11 @@ def validate_expert_objections(feedback: str, reviewed_artifacts: tuple[str, ...
             errors.append(f"objection {index} resolution {fields['resolution']!r} is not a concrete change")
             continue
         quotes = re.findall(r'["“]([^"”]+)["”]', fields["location"])
+        containment_claim = bool(re.search(r"\b(?:contain(?:s|ed|ing)?|include(?:s|d|ing)?|invent(?:s|ed|ing)?|mention(?:s|ed|ing)?)\b",
+                                           fields["rule"] + " " + fields["resolution"], re.I))
+        if containment_claim and not quotes:
+            errors.append(f"objection {index} containment/invention claim requires a quoted artifact example")
+            continue
         missing_quotes = [quote for quote in quotes if reviewed_text and quote not in reviewed_text]
         if missing_quotes:
             errors.append(f"objection {index} quotes text absent from reviewed artifact: {missing_quotes!r}")
