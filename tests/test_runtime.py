@@ -270,3 +270,19 @@ def test_fabricated_quote_invalidates_before_upstream_reclassification():
     assert len(upstream)==5
     assert len(errors)==1 and "fabricated evidence" in errors[0]
     assert all(item["artifact"]=="srs" for item in upstream)
+
+def test_quote_free_stale_srs_verdict_is_upstream_at_architecture_gate():
+    from vmodel_contracts.runtime import classify_expert_objections
+    feedback=("OBJECTION: artifact=architecture | rule=solution-agnostic requirement criterion | "
+              "location=requirement statements | resolution=Remove HTTP verbs, URL paths, JSON shapes, database choices, and UI widgets")
+    own, upstream, errors=classify_expert_objections(feedback,"architecture",("srs","intent"),'{"decisions":[]}')
+    assert own == [] and errors == []
+    assert len(upstream)==1 and upstream[0]["artifact"]=="srs"
+
+
+def test_generic_quote_free_architecture_objection_is_not_reclassified_upstream():
+    from vmodel_contracts.runtime import classify_expert_objections
+    feedback=("OBJECTION: artifact=architecture | rule=deployment topology criterion | "
+              "location=ADR-2 field decision | resolution=Name the concrete deployment topology")
+    own, upstream, errors=classify_expert_objections(feedback,"architecture",("srs","intent"),'{"decisions":[]}')
+    assert len(own)==1 and upstream==[] and errors==[]

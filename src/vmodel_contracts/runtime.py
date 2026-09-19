@@ -530,6 +530,21 @@ def classify_expert_objections(feedback: str, reviewed_artifact: str,
                                if re.search(rf"^(?:objection:\s*)?(?:the\s+)?{re.escape(name)}\b", lower)
                                or re.search(rf"artifact\s*=\s*{re.escape(name)}\b", lower)), None)
         structured = line.lower().startswith("objection:") and "artifact=" in lower
+        # phi4 can recite its stale SRS review at the architecture gate while
+        # omitting artifact=srs. Attribute only unmistakable SRS vocabulary;
+        # generic architecture quality prose stays an own-artifact objection
+        # and must still satisfy the strict location/rule/resolution contract.
+        srs_scope_markers = (
+            "the srs", "software requirements specification", "solution-agnostic",
+            "shall statement", "requirement statement", "acceptance criterion",
+            "http verb", "url path", "json shape", "ui widget",
+        )
+        srs_marker_hits = [marker for marker in srs_scope_markers if marker in lower]
+        explicit_artifact = re.search(r"artifact\s*=\s*([a-z0-9_-]+)", lower)
+        if (reviewed == "architecture" and "srs" in upstream_names and srs_marker_hits
+                and (not structured or (explicit_artifact and explicit_artifact.group(1) == reviewed))):
+            named_upstream = "srs"
+            structured = False
         if named_upstream and not structured:
             evidence = ", ".join(f'"{value}"' for value in quotes)
             upstream.append({"artifact": named_upstream,
