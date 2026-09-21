@@ -125,3 +125,8 @@ __all__ = [
 from .bundle_integrity import IntegrityDiagnostic, validate_traceability_graph
 
 from .decisions import founder_decision, binary_decision, emit_decision
+
+from .interactive import (INTERACTIVE_PROTOCOL_VERSION, EngineSnapshot, EventType, FailurePayload,
+    InputKind, InputOption, InputRequest, InputResponse, InteractiveEvent, NextStep, ProcessStatus,
+    ProgressPayload, ProtocolError, ProtocolErrorCode, StartSessionRequest, StartSessionResponse,
+    SubmitInputResponse)
