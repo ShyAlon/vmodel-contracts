@@ -77,12 +77,14 @@ class StageTokenUsage(ContractModel):
     prompt_tokens: int = Field(ge=0)
     completion_tokens: int = Field(ge=0)
     cached_tokens: int = Field(default=0, ge=0)
-    price_per_mtok_prompt_usd: float = Field(description="Price at call time, from the versioned price table.")
-    price_per_mtok_completion_usd: float
+    price_per_mtok_prompt_usd: float | None = Field(description="Price at call time; null when the provider has not published an authoritative price.")
+    price_per_mtok_completion_usd: float | None
     ts: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     @property
-    def cost_usd(self) -> float:
+    def cost_usd(self) -> float | None:
+        if self.price_per_mtok_prompt_usd is None or self.price_per_mtok_completion_usd is None:
+            return None
         return (
             self.prompt_tokens * self.price_per_mtok_prompt_usd
             + self.completion_tokens * self.price_per_mtok_completion_usd

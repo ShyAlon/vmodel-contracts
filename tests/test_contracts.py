@@ -307,3 +307,9 @@ def test_list_string_normalizer_leaves_unknown_objects_to_fail_loudly():
     fixed=normalize_list_string_fields(payload,ConceptOption)
     with pytest.raises(ValidationError):
         ConceptOption.model_validate(fixed)
+
+
+def test_unpriced_usage_preserves_tokens_without_inventing_zero_cost():
+    u = StageTokenUsage(session_id="s", stage="categorization_scope", provider="typesafe", model="jev", prompt_tokens=12, completion_tokens=3, price_per_mtok_prompt_usd=None, price_per_mtok_completion_usd=None)
+    assert u.cost_usd is None
+    assert u.model_dump()["price_per_mtok_prompt_usd"] is None
