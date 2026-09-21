@@ -46,3 +46,10 @@ def test_snapshot_has_no_prose_process_state():
         process_status=ProcessStatus.CREATED,next_step=NextStep.RUN)
     assert isinstance(snapshot.process_status,ProcessStatus)
     assert isinstance(snapshot.next_step,NextStep)
+
+
+def test_choice_option_preserves_display_tradeoffs():
+    option=InputOption(value='1',label='Progressive web app',summary='One installable web surface',
+        advantages=['Fast deployment'],disadvantages=['Limited background behavior'])
+    assert option.model_dump(mode='json')['advantages']==['Fast deployment']
+    assert InputOption.model_validate(option.model_dump(mode='json'))==option

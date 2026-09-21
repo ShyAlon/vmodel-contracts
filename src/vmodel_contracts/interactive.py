@@ -72,6 +72,8 @@ class InputOption(InteractiveModel):
     value: int | str
     label: str = Field(min_length=1)
     summary: str | None = None
+    advantages: list[str] = Field(default_factory=list)
+    disadvantages: list[str] = Field(default_factory=list)
 
 
 class InputRequest(InteractiveModel):
