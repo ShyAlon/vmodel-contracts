@@ -5,6 +5,11 @@ never import each other. They exchange these models, pinned to an exact
 release of this package.
 """
 from .version import CONTRACT_VERSION
+from .facets import (
+    EXTERNAL_OPTION_ID, COVERAGE_SCHEMA_ID, COVERAGE_SCHEMA_VERSION, COVERAGE_SCHEMA,
+    FacetValueKind, EvidenceDisposition, DeadLetterReason, PromotionStatus, FacetOption,
+    FacetDefinition, FacetSchema, SessionSchemaBinding, EvidenceRecord, DeadLetterEntry, PromotionReview,
+)
 from .vocabulary import (ARTIFACT_LABELS, CONCEPT_DECISION, CONCEPT_OF_OPERATIONS,
                          CONCEPT_OPTION, OPERATIONAL_SCENARIO, STAGE_LABELS, CANONICAL_STAGE_IDS,
                          STAKEHOLDER_CONTEXT, ArtifactName, PipelineStage)
