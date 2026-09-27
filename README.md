@@ -56,3 +56,9 @@ checkpoint; resuming a bounded terminal checkpoint without a named legal arc.
 Phase 1 defines and audits this contract only. Orchestration adoption starts
 with the architecture artifact and proceeds stage by stage after shadow logs
 match existing behavior.
+
+### Local CI test
+
+Run `./scripts/test-local.sh` from any directory. It creates a reusable `.venv`, installs the development dependencies and runs the same tests as the PR workflow using Python 3.12. Install Python 3.12 first, and make sure your Git authentication can read private `ShyAlon/vmodel-contracts` where it is a dependency.
+
+For a standalone wheel build of this repository, run `./scripts/build-local.sh` (requires Python 3.12 and pip). This writes to `dist/` and does not publish or deploy anything.
