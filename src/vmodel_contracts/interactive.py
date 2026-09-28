@@ -7,6 +7,7 @@ status classes.
 from __future__ import annotations
 
 from enum import IntEnum
+from datetime import datetime, timezone
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -28,6 +29,7 @@ class EventType(IntEnum):
     INPUT_ACCEPTED = 31
     ARTIFACT_PRODUCED = 40
     USAGE_RECORDED = 50
+    ROUTE_CHANGED = 51
     RUN_COMPLETED = 60
     RUN_FAILED = 61
     HEARTBEAT = 70
@@ -65,6 +67,7 @@ class ProtocolErrorCode(IntEnum):
     STALE_INPUT = 121
     DUPLICATE_RESPONSE = 122
     INVALID_RESPONSE = 130
+    ROUTE_SWITCH_CONFLICT = 140
     INTERNAL_ERROR = 500
 
 
@@ -112,6 +115,26 @@ class FailurePayload(InteractiveModel):
     retryable: bool = False
 
 
+class ModelRouteSwitchRequest(InteractiveModel):
+    model_route: Literal["ollama", "deepseek"]
+    expected_sequence: int = Field(ge=0)
+    expected_input_id: UUID
+    idempotency_key: UUID
+    actor_id: str = Field(min_length=1)
+
+
+class RouteChangePayload(InteractiveModel):
+    actor_id: str
+    from_route: str
+    to_route: str
+    from_model_map: dict[str, tuple[str, str]]
+    to_model_map: dict[str, tuple[str, str]]
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    route_version: int = Field(ge=1)
+    session_sequence: int = Field(ge=1)
+    idempotency_key: UUID
+
+
 class InteractiveEvent(InteractiveModel):
     protocol_version: Literal[INTERACTIVE_PROTOCOL_VERSION] = INTERACTIVE_PROTOCOL_VERSION
     event_id: UUID
@@ -125,6 +148,7 @@ class InteractiveEvent(InteractiveModel):
     input_request: InputRequest | None = None
     progress: ProgressPayload | None = None
     failure: FailurePayload | None = None
+    route_change: RouteChangePayload | None = None
 
     @model_validator(mode="after")
     def validate_event_payload(self):
@@ -132,6 +156,8 @@ class InteractiveEvent(InteractiveModel):
             raise ValueError("only input-requested events carry input_request")
         if self.process_status == ProcessStatus.WAITING_INPUT and self.next_step != NextStep.WAIT_INPUT:
             raise ValueError("waiting input requires WAIT_INPUT next step")
+        if (self.event_type == EventType.ROUTE_CHANGED) != (self.route_change is not None):
+            raise ValueError("route-change events require route_change payload")
         if self.event_type == EventType.RUN_FAILED and self.failure is None:
             raise ValueError("run-failed events require failure")
         return self
@@ -145,6 +171,10 @@ class EngineSnapshot(InteractiveModel):
     process_status: ProcessStatus
     next_step: NextStep
     open_input: InputRequest | None = None
+    model_route: str | None = None
+    model_map: dict[str, tuple[str, str]] | None = None
+    route_version: int = 0
+    route_history: list[RouteChangePayload] = Field(default_factory=list)
 
 
 class StartSessionRequest(InteractiveModel):
@@ -152,6 +182,7 @@ class StartSessionRequest(InteractiveModel):
     task_id: str = Field(min_length=1)
     idea: str = Field(min_length=1)
     model_route: str
+    initial_model: str | None = None
 
 
 class StartSessionResponse(InteractiveModel):
@@ -160,6 +191,11 @@ class StartSessionResponse(InteractiveModel):
 
 
 class SubmitInputResponse(InteractiveModel):
+    accepted_event: InteractiveEvent
+    snapshot: EngineSnapshot
+
+
+class ModelRouteSwitchResponse(InteractiveModel):
     accepted_event: InteractiveEvent
     snapshot: EngineSnapshot
 

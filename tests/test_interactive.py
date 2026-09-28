@@ -53,3 +53,19 @@ def test_choice_option_preserves_display_tradeoffs():
         advantages=['Fast deployment'],disadvantages=['Limited background behavior'])
     assert option.model_dump(mode='json')['advantages']==['Fast deployment']
     assert InputOption.model_validate(option.model_dump(mode='json'))==option
+
+
+def test_route_change_payload_is_typed_and_usage_segment_kept():
+    from vmodel_contracts.interactive import RouteChangePayload,ModelRouteSwitchRequest
+    from vmodel_contracts.telemetry import StageTokenUsage
+    payload=RouteChangePayload(actor_id='founder',from_route='ollama',to_route='deepseek',
+        from_model_map={'probing':('ollama','phi4')},to_model_map={'probing':('deepseek','deepseek-flash')},route_version=1,session_sequence=3,idempotency_key=uuid4())
+    event=InteractiveEvent(event_id=uuid4(),session_id='s',task_id='t',phase_id=0,sequence=3,
+        event_type=EventType.ROUTE_CHANGED,process_status=ProcessStatus.WAITING_INPUT,next_step=NextStep.WAIT_INPUT,route_change=payload)
+    assert InteractiveEvent.model_validate_json(event.model_dump_json()).route_change.route_version==1
+    usage=StageTokenUsage(session_id='s',route_version=1,stage='probing',provider='deepseek',model='deepseek-flash',
+        prompt_tokens=12,completion_tokens=5,price_per_mtok_prompt_usd=.3,price_per_mtok_completion_usd=1.2)
+    assert StageTokenUsage.model_validate_json(usage.model_dump_json()).route_version==1
+    with pytest.raises(ValidationError):
+        InteractiveEvent(event_id=uuid4(),session_id='s',task_id='t',phase_id=0,sequence=3,
+          event_type=EventType.ROUTE_CHANGED,process_status=ProcessStatus.WAITING_INPUT,next_step=NextStep.WAIT_INPUT)
