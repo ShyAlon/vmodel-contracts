@@ -71,6 +71,7 @@ class StageTokenUsage(ContractModel):
     here - their cost is compute, tracked separately."""
 
     session_id: str
+    route_version: int | None = Field(default=None, ge=0, description="Interview route segment; null for historical or unassigned calls")
     stage: str = Field(description="'interview' | 'intent_distillation' | 'requirements' | 'spec_authoring' | 'semantic_residue' | ...")
     provider: str = Field(description="'deepseek' | 'openai' | 'anthropic' | ...")
     model: str
