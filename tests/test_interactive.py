@@ -63,6 +63,7 @@ def test_route_change_payload_is_typed_and_usage_segment_kept():
     event=InteractiveEvent(event_id=uuid4(),session_id='s',task_id='t',phase_id=0,sequence=3,
         event_type=EventType.ROUTE_CHANGED,process_status=ProcessStatus.WAITING_INPUT,next_step=NextStep.WAIT_INPUT,route_change=payload)
     assert InteractiveEvent.model_validate_json(event.model_dump_json()).route_change.route_version==1
+    assert ModelRouteSwitchRequest(model_route='ollama',model='phi4',expected_sequence=3,expected_input_id=uuid4(),idempotency_key=uuid4(),actor_id='founder').model=='phi4'
     usage=StageTokenUsage(session_id='s',route_version=1,stage='probing',provider='deepseek',model='deepseek-flash',
         prompt_tokens=12,completion_tokens=5,price_per_mtok_prompt_usd=.3,price_per_mtok_completion_usd=1.2)
     assert StageTokenUsage.model_validate_json(usage.model_dump_json()).route_version==1

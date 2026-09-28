@@ -117,6 +117,7 @@ class FailurePayload(InteractiveModel):
 
 class ModelRouteSwitchRequest(InteractiveModel):
     model_route: Literal["ollama", "deepseek"]
+    model: str = Field(min_length=1, max_length=160)
     expected_sequence: int = Field(ge=0)
     expected_input_id: UUID
     idempotency_key: UUID
