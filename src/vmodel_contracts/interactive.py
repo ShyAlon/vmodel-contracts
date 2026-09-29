@@ -99,6 +99,7 @@ class InputRequest(InteractiveModel):
 class InputResponse(InteractiveModel):
     protocol_version: Literal[INTERACTIVE_PROTOCOL_VERSION] = INTERACTIVE_PROTOCOL_VERSION
     input_id: UUID
+    expected_sequence: int | None = Field(default=None, ge=0)
     value: int | str | bool
     rationale: str | None = None
     actor_id: str = Field(min_length=1)
@@ -181,6 +182,7 @@ class EngineSnapshot(InteractiveModel):
 class StartSessionRequest(InteractiveModel):
     protocol_version: Literal[INTERACTIVE_PROTOCOL_VERSION] = INTERACTIVE_PROTOCOL_VERSION
     task_id: str = Field(min_length=1)
+    session_id: UUID | None = None
     idea: str = Field(min_length=1)
     model_route: str
     initial_model: str | None = None
