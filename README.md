@@ -16,7 +16,7 @@ Consumers (each pins an exact release, e.g. `vmodel-contracts @ git+https://gith
 
 ## Rules
 
-1. Every model derives from `ContractModel` and carries `contract_version`.
+1. Artifact models derive from `ContractModel` and carry `contract_version`. Review records and the coding-handoff envelope have their own strict versioned contracts; HTTP controls use the interactive protocol version.
 2. SemVer: MAJOR breaks consumers, MINOR is additive, PATCH is docs/validation.
 3. `pip install -e .[dev] && vmodel-contracts-export` dumps JSON Schemas to
    `schemas/`; the schema diff between releases IS the compatibility review.
@@ -62,3 +62,16 @@ match existing behavior.
 Run `./scripts/test-local.sh` from any directory. It creates a reusable `.venv`, installs the development dependencies and runs the same tests as the PR workflow using Python 3.12. Install Python 3.12 first, and make sure your Git authentication can read private `ShyAlon/vmodel-contracts` where it is a dependency.
 
 For a standalone wheel build of this repository, run `./scripts/build-local.sh` (requires Python 3.12 and pip). This writes to `dist/` and does not publish or deploy anything.
+
+## Decision evidence and coding handoffs (0.20)
+
+`SemanticReview` binds the original candidate and findings to a session/phase digest.
+Every flagged item needs an explicit Remove, Replace, or Accept decision. Accept
+can override meaning, not structural validation. Apply decisions with a validator
+for the complete result, then keep the original record beside the canonical output.
+
+`FounderRegister` records missing data, owner, source, blockers, answers and explicit
+deferrals. A deferral does not invent an answer or clear a blocker. Optional registers
+in `IntentModel` and `SRSDocument` allow older typed construction; final export requires
+consistent reviewed registers. `CodingHandoff` carries allowlisted producer-relative
+files and exact SHA-256 checksums. Consumer installs must pin this additive 0.20 release.

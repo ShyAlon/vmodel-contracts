@@ -66,7 +66,9 @@ def test_every_model_exports_schema():
     assert len(models) >= 20
     for name, m in models.items():
         schema = m.model_json_schema()
-        assert "contract_version" in json.dumps(schema) or name == "ContractModel"
+        from vmodel_contracts.base import ContractModel
+        if issubclass(m,ContractModel):assert "contract_version" in json.dumps(schema)
+        else:assert schema.get("additionalProperties") is False
 
 
 # ---- v0.2.0: SE rigor + version compatibility ----

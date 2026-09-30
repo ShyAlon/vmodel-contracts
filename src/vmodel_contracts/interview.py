@@ -12,6 +12,7 @@ from pydantic import Field
 
 from .base import ContractModel
 from .requirements import RequirementKind
+from .founder_register import FounderRegister
 
 
 class TurnRole(str, Enum):
@@ -181,6 +182,7 @@ class IntentModel(ContractModel):
         default_factory=list,
         description="Questions the founder could not answer. Carried into the punch list, never silently resolved.",
     )
+    founder_register: FounderRegister | None = None
     source_turns: dict[str, list[int]] = Field(
         description="Field name -> transcript turn indexes the field was distilled from. Auditability, not decoration."
     )

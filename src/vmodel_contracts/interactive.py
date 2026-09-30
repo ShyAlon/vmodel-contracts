@@ -102,6 +102,7 @@ class InputResponse(InteractiveModel):
     expected_sequence: int | None = Field(default=None, ge=0)
     value: int | str | bool
     rationale: str | None = None
+    founder_inputs: list[dict] = Field(default_factory=list,max_length=1000)
     actor_id: str = Field(min_length=1)
 
 

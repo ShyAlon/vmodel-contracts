@@ -10,6 +10,7 @@ from pydantic import Field, model_validator
 from .base import ContractModel
 from .interview import Assumption
 from .requirements import Requirement
+from .founder_register import FounderRegister
 
 
 class DesignConstraint(ContractModel):
@@ -47,6 +48,8 @@ class SRSDocument(ContractModel):
         default_factory=list,
         description="Unresolved founder questions carried from intent - never silently resolved.",
     )
+
+    founder_register: FounderRegister | None = None
 
     def requirements(self) -> list[Requirement]:
         """All requirements, functional first. The flat view assembly math uses."""
