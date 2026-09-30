@@ -5,10 +5,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from . import intake, interview, conops, requirements, spec, verification, delivery, telemetry, baseline, facets
+from . import intake, interview, conops, requirements, spec, verification, delivery, telemetry, baseline, facets, semantic_review, founder_register, handoff, interactive
 from .base import ContractModel
+from .semantic_review import ReviewModel
+from .interactive import InteractiveModel
 
-_MODULES = [intake, interview, conops, requirements, spec, verification, delivery, telemetry, baseline, facets]
+_MODULES = [intake, interview, conops, requirements, spec, verification, delivery, telemetry, baseline, facets, semantic_review, founder_register, handoff, interactive]
 
 
 def all_models() -> dict[str, type[ContractModel]]:
@@ -16,7 +18,7 @@ def all_models() -> dict[str, type[ContractModel]]:
     for mod in _MODULES:
         for name in dir(mod):
             obj = getattr(mod, name)
-            if isinstance(obj, type) and issubclass(obj, ContractModel) and obj is not ContractModel:
+            if isinstance(obj, type) and issubclass(obj, (ContractModel,ReviewModel,InteractiveModel)) and obj not in (ContractModel,ReviewModel,InteractiveModel):
                 found[name] = obj
     return found
 
