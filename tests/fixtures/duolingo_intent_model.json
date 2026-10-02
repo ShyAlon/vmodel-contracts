@@ -1,0 +1,400 @@
+{
+  "contract_version": "0.20.0",
+  "session_id": "cef8ed07-0894-4f4e-bd40-2455fbfd0fa3",
+  "problem_statement": "Build a PWA that replicates the UI/UX and lesson content of the Duolingo Music track so a 7-year-old boy whose access to Duolingo Music is limited can play the full set of music lessons (keyboard playing, games, grading) on his own device.",
+  "target_users": [
+    "The founder's son, a 7-year-old boy who likes Duolingo Music but has limited access (primary user)",
+    "The founder/developers, who own and maintain the lesson content (secondary)"
+  ],
+  "core_value_proposition": "Give the son unrestricted, self-contained access to a Duolingo-Music-style learning experience \u2014 lessons, on-screen piano keyboard, ear training, sight-reading, warmups and scored full-song recitals \u2014 that runs offline in the browser with no accounts and no external data sources.",
+  "stakeholder_needs": [
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-1",
+      "statement": "I want a PWA which will replicate the UI and UX of the Duolingo Music track, including all the lessons.",
+      "kind": "functional",
+      "source_turns": [
+        0
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-2",
+      "statement": "It shouldn't bother with user management.",
+      "kind": "functional",
+      "source_turns": [
+        0
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-3",
+      "statement": "Persist the data in the browser's local storage.",
+      "kind": "functional",
+      "source_turns": [
+        0
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-4",
+      "statement": "It should support at least iPhone and iPad.",
+      "kind": "non_functional",
+      "source_turns": [
+        0
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-5",
+      "statement": "Use GitHub Actions and deploy in GitHub Pages.",
+      "kind": "non_functional",
+      "source_turns": [
+        0
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-6",
+      "statement": "The app shouldn't rely on any external data sources.",
+      "kind": "non_functional",
+      "source_turns": [
+        0
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-7",
+      "statement": "The user is my son, a 7 year old boy; he likes Duolingo Music, but his access is limited.",
+      "kind": "functional",
+      "source_turns": [
+        2
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-8",
+      "statement": "He opens the app and starts the next lesson; it walks him through playing simple tunes with the on-screen keyboard and plays games until the lesson is over, when he is graded for his performance.",
+      "kind": "functional",
+      "source_turns": [
+        4
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-9",
+      "statement": "The lesson content should derive from the Duolingo Music track (this should be included in the requirements).",
+      "kind": "functional",
+      "source_turns": [
+        6
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-10",
+      "statement": "GitHub should be used as infrastructure - serving the app, source control and CI/CD; during the operation of the app it should be self contained.",
+      "kind": "non_functional",
+      "source_turns": [
+        8
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-11",
+      "statement": "A bit of lagging is fine, but it shouldn't happen too often; since the experience should be mostly offline there's no reason for issues.",
+      "kind": "non_functional",
+      "source_turns": [
+        12
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-12",
+      "statement": "Songs should be popular songs - better if unlicensed.",
+      "kind": "functional",
+      "source_turns": [
+        20
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-13",
+      "statement": "The app should be honest about the results (grading of his performance).",
+      "kind": "functional",
+      "source_turns": [
+        22
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-14",
+      "statement": "The feedback should be precise on the type of failure.",
+      "kind": "functional",
+      "source_turns": [
+        24
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "need_id": "SN-15",
+      "statement": "The app should allow retrying (indefinitely) or switching to another exercise.",
+      "kind": "functional",
+      "source_turns": [
+        24
+      ]
+    }
+  ],
+  "in_scope": [
+    "PWA replicating the UI and UX of the Duolingo Music track, including all the lessons",
+    "On-screen piano keyboard: tap, drag, and match keys and notes visually without a physical instrument",
+    "Ear training: listen to audio pitches and rhythms, match and identify correct notes",
+    "Sight-reading: recognize notes on a musical staff and map them to keyboard geography",
+    "Pre-song warmups: low-stakes practice of specific parts or measures of a song before playing it in full",
+    "Full song recital: play complete popular songs scored out of 1,000 points on pitch and rhythm accuracy",
+    "Star & scoring system: up to three stars per song earned by repeating attempts and improving accuracy",
+    "Lesson flow: open app, start next lesson, play tunes on the on-screen keyboard, play games, and be graded at lesson end",
+    "Honest, precise feedback about the type of failure when a song is scored poorly",
+    "Indefinite retry of a song or switching to another exercise",
+    "Persistence of all data in the browser's local storage",
+    "Support for at least iPhone and iPad",
+    "Deployment via GitHub Actions to GitHub Pages; GitHub used as infrastructure for hosting, source control and CI/CD"
+  ],
+  "out_of_scope": [
+    "User management: accounts, login, profiles",
+    "External data sources during app operation \u2014 the app is self-contained at runtime",
+    "Runtime third-party services such as analytics or a CDN",
+    "Licensed Sony Music tracks (popular songs preferred, better if unlicensed)",
+    "Robust error handling / recovery experience when a lesson fails to load, progress is lost, or sound does not play (the founder accepts that the son will come to him for aid)",
+    "Server-side persistence and cross-device sync",
+    "Platforms other than iPhone and iPad"
+  ],
+  "external_integrations": [
+    "GitHub Pages (static hosting/serving of the app)",
+    "GitHub Actions (CI/CD pipeline)",
+    "GitHub (source control repository)",
+    "None at runtime: the operating app must not consume any external data source or third-party service"
+  ],
+  "constraints": [
+    "Must be delivered as a Progressive Web App (PWA)"
+  ],
+  "assumptions": [],
+  "assumption_items": [
+    {
+      "contract_version": "0.20.0",
+      "statement": "That the game will be enough to keep him entertained in the long run.",
+      "source_turns": [
+        16
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "statement": "Since the experience should be mostly offline there's no reason for issues (lag or sound sync problems).",
+      "source_turns": [
+        12
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "statement": "FOUNDER-DELEGATED: risks - after two interview attempts, the remaining detail is left open for the spec/architecture stage instead of being re-asked. The founder's latest response was: 'That the game will be enough to keep him entertained in the long run.'.",
+      "source_turns": [
+        16
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "statement": "FOUNDER-DELEGATED: glossary - after two interview attempts, the remaining detail is left open for the spec/architecture stage instead of being re-asked. The founder's latest response was: 'A good result would be at least 75% right. The app should be honest about the results.'.",
+      "source_turns": [
+        22
+      ]
+    }
+  ],
+  "scope_exclusions": [
+    {
+      "contract_version": "0.20.0",
+      "item": "User management (accounts, login, profiles)",
+      "source_turns": [
+        0
+      ],
+      "explicit": true
+    },
+    {
+      "contract_version": "0.20.0",
+      "item": "External data sources while the app is operating (app is self-contained at runtime)",
+      "source_turns": [
+        0,
+        8
+      ],
+      "explicit": true
+    },
+    {
+      "contract_version": "0.20.0",
+      "item": "Runtime third-party services such as analytics or a CDN",
+      "source_turns": [
+        8
+      ],
+      "explicit": true
+    },
+    {
+      "contract_version": "0.20.0",
+      "item": "Licensed Sony Music tracks (popular songs preferred, better if unlicensed)",
+      "source_turns": [
+        18,
+        19,
+        20
+      ],
+      "explicit": true
+    },
+    {
+      "contract_version": "0.20.0",
+      "item": "Robust error-handling / recovery experience for load failures, lost progress or missing sound",
+      "source_turns": [
+        9,
+        10
+      ],
+      "explicit": true
+    },
+    {
+      "contract_version": "0.20.0",
+      "item": "Server-side persistence and cross-device sync",
+      "source_turns": [
+        0
+      ],
+      "explicit": false
+    },
+    {
+      "contract_version": "0.20.0",
+      "item": "Support for platforms beyond iPhone and iPad (e.g. Android, desktop)",
+      "source_turns": [
+        0
+      ],
+      "explicit": false
+    }
+  ],
+  "done_criteria": [
+    "On-Screen Piano Keyboard: Tap, drag, and match keys and notes visually without needing a physical instrument.",
+    "Ear Training: Listen to audio pitches and rhythms to match and identify correct notes.",
+    "Sight-Reading: Learn to recognize notes on a musical staff and map them to keyboard geography.",
+    "Pre-Song Warmups: Low-stakes practice environments to learn specific parts or measures of a song before playing it in full.",
+    "Full Song Recital: Play complete classical, traditional, or popular tracks scored out of 1,000 points based on pitch and rhythm accuracy.",
+    "Star & Scoring System: Earn up to three stars per song by repeating attempts and improving accuracy.",
+    "A good result would be at least 75% right."
+  ],
+  "tech_preferences": [],
+  "glossary": {
+    "Duolingo Music track": "the music-learning track in Duolingo whose UI, UX and lessons this app replicates",
+    "lesson": "a guided session in which the son plays simple tunes on the on-screen keyboard and plays games, ending with a grade for his performance",
+    "on-screen keyboard": "the tappable/draggable piano keyboard that lets keys and notes be matched visually without a physical instrument",
+    "ear training": "listening to audio pitches and rhythms and matching/identifying the correct notes",
+    "sight-reading": "recognizing notes on a musical staff and mapping them to keyboard geography",
+    "pre-song warmups": "low-stakes practice environments to learn specific parts or measures of a song before playing it in full",
+    "full song recital": "playing a complete classical, traditional or popular song, scored out of 1,000 points based on pitch and rhythm accuracy",
+    "star & scoring system": "up to three stars per song, earned by repeating attempts and improving accuracy",
+    "graded": "scored honestly at the end of a lesson or song; at least 75% correct counts as a good result",
+    "the user": "the founder's 7-year-old son"
+  },
+  "operational_concepts": [
+    "When something goes wrong while he's using it - a lesson won't load, his progress gets lost, or the sound doesn't play - he would be very upset and come to me for aid; this is acceptable.",
+    "We (the developers) own and maintain the lesson content - the tunes, notes, and game sequences."
+  ],
+  "research_briefs": [
+    {
+      "contract_version": "0.20.0",
+      "topic": "risks",
+      "brief": "Research the unresolved risks question from current authoritative sources and present the method or choice at the review gate.",
+      "source_turns": [
+        16
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "topic": "glossary",
+      "brief": "Research the unresolved glossary question from current authoritative sources and present the method or choice at the review gate.",
+      "source_turns": [
+        22
+      ]
+    }
+  ],
+  "open_questions": [
+    "Which single wrong assumption would kill the whole project \u2014 the founder does not know (turn 13-14)",
+    "Whether the game will be enough to keep the son entertained in the long run (turn 15-16)",
+    "What 'laggy' or 'sound out of sync' tolerances actually mean in practice \u2014 'not too often' is unquantified (turn 11-12)",
+    "What, concretely, should happen for the son when a lesson won't load, progress is lost, or sound doesn't play \u2014 currently 'he comes to me, this is acceptable' (turn 9-10)",
+    "Legal/IP provenance of lesson content: it should derive from the Duolingo Music track, and songs should be popular and preferably unlicensed \u2014 the source of that content is unspecified (turn 5-6, 19-20)",
+    "Lag/stutter frequency threshold that would be considered a defect"
+  ],
+  "source_turns": {
+    "problem_statement": [
+      0,
+      2,
+      4
+    ],
+    "target_users": [
+      2,
+      6
+    ],
+    "core_value_proposition": [
+      0,
+      2,
+      18
+    ],
+    "in_scope": [
+      0,
+      4,
+      6,
+      8,
+      18,
+      22,
+      24
+    ],
+    "out_of_scope": [
+      0,
+      8,
+      10,
+      18,
+      19,
+      20
+    ],
+    "external_integrations": [
+      0,
+      8
+    ],
+    "constraints": [
+      0,
+      6,
+      8
+    ],
+    "open_questions": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      19,
+      20
+    ],
+    "tech_preferences": [
+      0,
+      8
+    ],
+    "glossary": [
+      0,
+      2,
+      4,
+      6,
+      18,
+      22
+    ],
+    "scope_exclusions": [
+      0,
+      8,
+      9,
+      10,
+      18,
+      19,
+      20
+    ]
+  }
+}

@@ -110,6 +110,8 @@ SRS_SOLUTION_RULES = (
     # allowed. Binding technology choices remain lintable unless exemplary.
     ("named_technology", re.compile(r"\b(?:oauth|jwt|saml|openid|postgres(?:ql)?|mysql|mongodb|redis|kafka|rabbitmq|kubernetes|docker|graphql|grpc|websocket|elasticsearch|spark|hadoop|snowflake)\b", re.I)),
     ("http_verb", re.compile(r"\b(?:GET|POST|PUT|PATCH|DELETE)(?=\s+/(?:api/)?|\s+(?:request|endpoint))")),
+    # A bare 3-digit number is not an HTTP status ("within 200 ms"). It needs an HTTP cue
+    # (see _http_status_context): a status word after it, or "HTTP/status/returns/responds with" before it.
     ("http_status", re.compile(r"\b[1-5]\d\d(?:\s+(?:Unauthorized|OK|Found|Error|Created))?\b", re.I)),
     ("url_path", re.compile(r"/(?:api/)?[a-z0-9_{}-]+(?:/[a-z0-9_{}-]+)+", re.I)),
     ("json_shape", re.compile(r"\bJSON\b|\{\s*[\"'][^}]+\}", re.I)),
@@ -118,8 +120,41 @@ SRS_SOLUTION_RULES = (
 )
 
 
+_STATUS_WORD = re.compile(r"^\d{3}\s+(?:Unauthorized|OK|Found|Error|Created)$", re.I)
+_STATUS_CUE = re.compile(r"(?:\bhttp(?:/\d(?:\.\d)?)?|\bstatus(?:\s+code)?|\bresponse\s+code|\breturns?|\bresponds?\s+with|\bresult(?:s|ing)?\s+in)\s*:?\s*$", re.I)
+_TIME_UNIT = re.compile(r"^\s*(?:ms|milliseconds?|seconds?|secs?|s|minutes?|mins?|hours?|hz|fps|kb|mb|gb|px|%)\b", re.I)
+
+
+def _http_status_context(text: str, match) -> bool:
+    if _STATUS_WORD.match(match.group(0).strip()):
+        return True
+    if _TIME_UNIT.match(text[match.end():match.end() + 14]):
+        return False
+    return bool(_STATUS_CUE.search(text[max(0, match.start() - 24):match.start()]))
+
+
+def _in_corpus(token: str, corpus_lower: str) -> bool:
+    """Numbers match as whole numbers ('200' is not found inside '2000'); words match as substrings."""
+    t = token.lower()
+    if re.fullmatch(r"\d+(?:\.\d+)?%?", t):
+        return re.search(r"(?<![\d.])" + re.escape(t.rstrip("%")) + r"(?![\d])", corpus_lower) is not None
+    return t in corpus_lower
+
+
+def _invention_candidate(token: str, field: str, text: str, start: int) -> bool:
+    """Would an unsupported `token` be a signal of an invented detail? Ordinary Title Case words in
+    a title ('Required', 'Capability') are not: titles capitalize every word. Numbers, acronyms,
+    CamelCase / digit-bearing names, and capitalized words in running text still are."""
+    if re.fullmatch(r"\d+(?:\.\d+)?%?", token):
+        return True
+    if field != "title":
+        return True
+    return token.isupper() or bool(re.search(r"\d", token)) or bool(re.search(r"[a-z][A-Z]", token))
+
+
 def srs_draft_findings(draft: dict, interview_text: str) -> list[dict]:
-    """Find binding solution language, inventions, and non-EARS requirements."""
+    """Find binding solution language, inventions, and non-EARS requirements.
+    `interview_text` is every source the founder's meaning lives in (intent model, needs, concept of operations)."""
     findings = []
     source_lower = interview_text.lower()
     common_sentence_words = {"each", "upon", "management", "resolution", "when", "while", "if", "then",
@@ -144,6 +179,8 @@ def srs_draft_findings(draft: dict, interview_text: str) -> list[dict]:
                         prefix = text[max(0, match.start()-24):match.start()]
                         if exemplar.search(prefix):
                             continue
+                        if rule == "http_status" and not _http_status_context(text, match):
+                            continue
                         span = match.group(0); key = (rule, span.lower())
                         if key not in seen:
                             seen.add(key); findings.append({"kind":"solution_language","rule":rule,
@@ -153,7 +190,7 @@ def srs_draft_findings(draft: dict, interview_text: str) -> list[dict]:
                     sentence_initial = match.start()==0 or text[max(0,match.start()-2):match.start()].endswith(". ")
                     if lower in common_sentence_words or (sentence_initial and lower.isalpha() and lower not in source_lower):
                         continue
-                    if lower not in source_lower:
+                    if not _in_corpus(token, source_lower) and _invention_candidate(token, field, text, match.start()):
                         findings.append({"kind":"potential_invention","rule":"absent_from_interview",
                             "location":f"{rid} field {field}","span":token})
     return findings
