@@ -1,0 +1,182 @@
+{
+  "contract_version": "0.20.0",
+  "session_id": "cef8ed07-0894-4f4e-bd40-2455fbfd0fa3",
+  "stakeholder_context": [
+    {
+      "contract_version": "0.20.0",
+      "stakeholder": "The founder's son, a 7-year-old boy who likes Duolingo Music but has limited access (primary user)",
+      "role": "The founder's son, a 7-year-old boy who likes Duolingo Music but has limited access (primary user)",
+      "goals": [
+        "I want a PWA which will replicate the UI and UX of the Duolingo Music track, including all the lessons.",
+        "It shouldn't bother with user management.",
+        "Persist the data in the browser's local storage.",
+        "The app shouldn't rely on any external data sources.",
+        "The user is my son, a 7 year old boy; he likes Duolingo Music, but his access is limited.",
+        "He opens the app and starts the next lesson; it walks him through playing simple tunes with the on-screen keyboard and plays games until the lesson is over, when he is graded for his performance.",
+        "The lesson content should derive from the Duolingo Music track (this should be included in the requirements).",
+        "GitHub should be used as infrastructure - serving the app, source control and CI/CD; during the operation of the app it should be self contained.",
+        "A bit of lagging is fine, but it shouldn't happen too often; since the experience should be mostly offline there's no reason for issues.",
+        "The app should be honest about the results (grading of his performance).",
+        "The feedback should be precise on the type of failure.",
+        "The app should allow retrying (indefinitely) or switching to another exercise."
+      ],
+      "operating_environment": "Must be delivered as a Progressive Web App (PWA); When something goes wrong while he's using it - a lesson won't load, his progress gets lost, or the sound doesn't play - he would be very upset and come to me for aid; this is acceptable.; We (the developers) own and maintain the lesson content - the tunes, notes, and game sequences.",
+      "source_turns": [
+        0,
+        2,
+        4,
+        6,
+        8,
+        12,
+        22,
+        24
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "stakeholder": "The founder/developers, who own and maintain the lesson content (secondary)",
+      "role": "The founder/developers, who own and maintain the lesson content (secondary)",
+      "goals": [
+        "I want a PWA which will replicate the UI and UX of the Duolingo Music track, including all the lessons.",
+        "Persist the data in the browser's local storage.",
+        "It should support at least iPhone and iPad.",
+        "Use GitHub Actions and deploy in GitHub Pages.",
+        "The app shouldn't rely on any external data sources.",
+        "The user is my son, a 7 year old boy; he likes Duolingo Music, but his access is limited.",
+        "He opens the app and starts the next lesson; it walks him through playing simple tunes with the on-screen keyboard and plays games until the lesson is over, when he is graded for his performance.",
+        "The lesson content should derive from the Duolingo Music track (this should be included in the requirements).",
+        "GitHub should be used as infrastructure - serving the app, source control and CI/CD; during the operation of the app it should be self contained.",
+        "A bit of lagging is fine, but it shouldn't happen too often; since the experience should be mostly offline there's no reason for issues.",
+        "The app should be honest about the results (grading of his performance).",
+        "The feedback should be precise on the type of failure.",
+        "The app should allow retrying (indefinitely) or switching to another exercise."
+      ],
+      "operating_environment": "Must be delivered as a Progressive Web App (PWA); When something goes wrong while he's using it - a lesson won't load, his progress gets lost, or the sound doesn't play - he would be very upset and come to me for aid; this is acceptable.; We (the developers) own and maintain the lesson content - the tunes, notes, and game sequences.",
+      "source_turns": [
+        0,
+        2,
+        4,
+        6,
+        8,
+        12,
+        22,
+        24
+      ]
+    }
+  ],
+  "operational_scenarios": [
+    {
+      "contract_version": "0.20.0",
+      "scenario_id": "OS-1",
+      "name": "When something goes wrong while he's using it - a lesson won't load, his progress gets lost, or the sound doesn't play - he would be very upset and come to me for aid; this is acceptable.",
+      "trigger": "The son is using the app and something goes wrong mid-use \u2014 a lesson won't load, his progress gets lost, or the sound doesn't play \u2014 at which point he becomes very upset and comes to the founder for aid (the founder accepts this as the expected handling).",
+      "actors": [
+        "The founder's son, a 7-year-old boy who likes Duolingo Music but has limited access (primary user)",
+        "The founder/developers, who own and maintain the lesson content (secondary)"
+      ],
+      "operational_flow": [
+        "When something goes wrong while he's using it - a lesson won't load, his progress gets lost, or the sound doesn't play - he would be very upset and come to me for aid; this is acceptable."
+      ],
+      "success_outcome": "Give the son unrestricted, self-contained access to a Duolingo-Music-style learning experience \u2014 lessons, on-screen piano keyboard, ear training, sight-reading, warmups and scored full-song recitals \u2014 that runs offline in the browser with no accounts and no external data sources.",
+      "exceptions": [],
+      "source_turns": [
+        0,
+        2,
+        4,
+        6,
+        8,
+        18,
+        22,
+        24
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "scenario_id": "OS-2",
+      "name": "We (the developers) own and maintain the lesson content - the tunes, notes, and game sequences.",
+      "trigger": "The founder/developers need to author, derive, or revise the built-in lesson content (the tunes, notes and game sequences) that ships with the app \u2014 because they own and maintain it, and it must derive from the Duolingo Music track \u2014 so the son always opens the app and starts the next lesson with a complete, self-contained set of lessons, warmups and full songs.",
+      "actors": [
+        "The founder's son, a 7-year-old boy who likes Duolingo Music but has limited access (primary user)",
+        "The founder/developers, who own and maintain the lesson content (secondary)"
+      ],
+      "operational_flow": [
+        "We (the developers) own and maintain the lesson content - the tunes, notes, and game sequences."
+      ],
+      "success_outcome": "Give the son unrestricted, self-contained access to a Duolingo-Music-style learning experience \u2014 lessons, on-screen piano keyboard, ear training, sight-reading, warmups and scored full-song recitals \u2014 that runs offline in the browser with no accounts and no external data sources.",
+      "exceptions": [],
+      "source_turns": [
+        0,
+        2,
+        4,
+        6,
+        8,
+        18,
+        22,
+        24
+      ]
+    }
+  ],
+  "concept_options": [
+    {
+      "contract_version": "0.20.0",
+      "concept_id": "concept:home-screen-offline-pwa-son-operated-music-studio",
+      "name": "Home-Screen Offline PWA \u2014 Son-Operated Music Studio",
+      "summary": "A single installable web app, added once to the home screen of the son's iPhone or iPad, that opens full-screen with no browser chrome, no account, no sign-in and no network. He taps the icon, the app resumes his saved progress from the device's local storage, and drops him straight into the next lesson on a Duolingo-Music-style path. A lesson runs as one continuous guided session: play simple tunes on the on-screen piano keyboard by tapping and dragging keys to match notes, play ear-training games that ask him to listen to pitches and rhythms and identify what he heard, and do staff sight-reading that maps printed notes onto keyboard geography. When a song comes up, he can take low-stakes pre-song warmups on individual measures before attempting the full recital, which is scored out of 1,000 points on pitch and rhythm accuracy and awards up to three stars that he improves by repeating attempts. Grading is honest and names the specific kind of failure, and he can retry a song indefinitely or switch to another exercise whenever he wants. All lessons, audio and scoring rules travel inside the app and are cached on the device, so GitHub Pages and GitHub Actions are touched only when the founder publishes a content update; during operation the app is fully self-contained and reaches nothing external, which is what keeps the experience lag-free and sound in sync. Lesson content is the founder's to author and version, so new tunes, notes and game sequences arrive as ordinary releases through the same pipeline rather than as any change to how the boy uses the app. The operating concept deliberately has no recovery experience: if a lesson won't load, progress is lost or audio won't play, he comes to the founder, and design effort stays on the lesson itself and on whether the game holds his interest over the long run.",
+      "advantages": [
+        "Opens full-screen straight from the home-screen icon with no browser chrome, no account and no sign-in, so the son can tap and begin the next lesson exactly as he does today (turns 0, 4).",
+        "Fully self-contained at runtime: lesson content, audio and scoring rules are cached on the device, satisfying 'no external data source' and 'self contained during operation' while GitHub is touched only when the founder publishes (turns 0, 8).",
+        "Local-storage persistence matches the founder's explicit decision to skip user management, so there is no backend, no cross-device sync and no server-side component to fail (turn 0).",
+        "One artifact serves both iPhone and iPad, the only platforms requested, with no per-platform install funnel beyond adding the icon once (turn 0).",
+        "Cached assets make lag and out-of-sync sound the exception rather than the rule, which is the founder's stated tolerance for tempo-critical keyboard playing (turn 12).",
+        "Publishing through GitHub Actions to GitHub Pages matches the chosen infrastructure and lets new tunes, notes and game sequences arrive as ordinary releases without changing how the son uses the app (turns 0, 6).",
+        "Carries the full agreed scope in a single installable icon: on-screen keyboard, ear training, sight-reading, pre-song warmups, 1,000-point recitals with three stars, precise failure feedback and indefinite retry (turns 18, 22, 24).",
+        "No app-store review, no install approvals and no accounts to maintain, keeping the operational surface minimal for a single 7-year-old user (turn 2).",
+        "Keeps design effort on the lesson itself and on whether the game holds his interest over the long run, instead of on recovery flows the founder explicitly accepted he would handle himself (turns 10, 16)."
+      ],
+      "disadvantages": [
+        "Recovery is deliberately left outside the app: when a lesson won't load, progress is lost or sound doesn't play, the son becomes upset and comes to the founder, so every failure lands as a support interruption rather than a self-healed session (turns 9, 10).",
+        "Progress lives only in the device's local browser storage with no backend, so iOS reclaiming storage, a cleared cache or a deleted icon wipes his save state with no recovery path, which is exactly the 'progress gets lost' case the founder accepted (turns 0, 9).",
+        "With no account and no sync, the iPhone and iPad hold separate save states, so the son cannot continue the same lesson path across the two platforms the founder asked to support (turns 0, 4).",
+        "Tempo-critical keyboard play and ear training are handed to the Web Audio and mobile-Safari PWA stack, and the founder's tolerance ('a bit of lagging is fine, but it shouldn't happen too often') is unquantified, so the concept cannot promise the issue-free offline experience he assumed (turns 11, 12).",
+        "Installation is a one-time parent action: the icon must be added to the home screen and the app must launch standalone full-screen, otherwise the tap-the-icon-and-begin operation the founder described does not hold (turns 0, 4).",
+        "Cached assets mean a published release does not automatically reach the son; the founder must manage service-worker and cache versioning so new tunes and game sequences arrive as ordinary releases without destroying local progress (turns 6, 8).",
+        "With no runtime telemetry and no external data sources allowed, there is little in-app observability of what actually went wrong, so when the son comes to the founder for aid the founder must reproduce the failure on the device himself (turns 8, 10).",
+        "Nothing in the concept addresses the founder's least-certain assumption, that the game keeps his son entertained in the long run, so the primary engagement risk carries over unchanged (turn 16).",
+        "As a home-screen PWA there is no store distribution, no native audio session handling and no platform update plumbing, so the whole child-facing experience rides on one cached artifact with no fallback (turns 0, 8)."
+      ]
+    },
+    {
+      "contract_version": "0.20.0",
+      "concept_id": "concept:founder-published-repertoire-shelf-curated-practice-room",
+      "name": "Founder-Published Repertoire Shelf \u2014 Curated Practice Room",
+      "summary": "Instead of a Duolingo-style linear lesson path that auto-serves the next lesson, this concept treats the app as a fixed, founder-curated practice room. The founder/developers assemble the full body of lesson content \u2014 warmups, ear-training games, sight-reading drills and full song recitals \u2014 into a versioned content release published through GitHub, and that entire shelf ships with the app so it is fully self-contained at runtime. The son's device holds a stable repertoire he picks from directly: he chooses a warmup, a game, or a song recital whenever he wants, drills a specific measure as many times as he likes, and sees his stars and best scores sitting on each item's tile rather than unlocking them by advancing through a prescribed sequence. Because the shelf is fixed per release, every lesson he sees is the same set until a new release is published, making it easy for the founder to add songs, adjust difficulty, or retire a frustrating exercise and have the son's next visit simply reflect the new library; all progress, stars and scores persist in local storage, with no accounts and no runtime dependencies beyond the device.",
+      "advantages": [
+        "Ships as one self-contained release: the whole visual/keyboard lesson shelf (warmups, ear-training games, sight-reading drills, full song recitals) is bundled with the app, so the son's iPhone/iPad needs no network at runtime \u2014 matching the founder's requirement that operation be fully self-contained with no external data sources (turns 0, 8).",
+        "No accounts, no server, nothing to manage: stars, best scores and progress live in local storage exactly as the founder asked, so there is no user management layer for a single 7-year-old user (turn 0).",
+        "Removes the 'why can't I play that song' friction of a linear path: the son opens any warmup, game or recital directly and can drill one measure as many times as he likes, which fits the founder's need to retry indefinitely or switch to another exercise after a poor score (turns 4, 24).",
+        "Honest, precise feedback stays attached where he can see it: each item's tile carries its own stars and best score, so scoring out of 1,000 and the \u226575% 'good result' judgement are visible in place rather than revealed only at the end of a prescribed lesson sequence (turns 22, 24).",
+        "Content changes are a published release, not a data migration: the founder/developers who own the tunes and game sequences can add songs, adjust difficulty or retire a frustrating exercise in a versioned GitHub release, and the son's next visit simply reflects the new shelf (turns 6, 8).",
+        "Keeps the biggest stated risk addressable: a fixed, founder-curated repertoire can be deliberately refreshed when the son tires of it, and because nothing is fetched mid-lesson there is no fragile runtime chain to break the way a lesson-won't-load or sound-dropout failure would upset him (turns 16, 10)."
+      ],
+      "disadvantages": [
+        "Departs from the founder's stated core requirement to replicate the Duolingo Music track's UI/UX, including its lesson flow: the son is supposed to 'open the app and start the next lesson,' but a founder-curated shelf gives him no next lesson to start and puts the sequencing decision on a 7-year-old (turns 0, 4).",
+        "Removes the scaffolded path the founder explicitly described in the done criteria \u2014 pre-song warmups come before playing a song in full \u2014 because every item on the shelf is directly selectable, so the son can jump straight into a full song recital and never touch the warmups or ear-training drills meant to prepare him (turn 18).",
+        "Turns the founder's own stated biggest risk into his own maintenance chore: the worry that 'the game will be enough to keep him entertained in the long run' is only addressed if new releases keep being published by hand, and a fixed shelf goes stale the moment that editorial effort stops (turns 6, 16).",
+        "Every content change \u2014 adding a song, adjusting difficulty, retiring a frustrating exercise \u2014 requires a build-and-publish release cycle through GitHub rather than a content edit, so the secondary users (the founder/developers who own the tunes and game sequences) carry recurring release overhead for a single 7-year-old user (turns 6, 8).",
+        "Stars and best scores sitting visible on every tile removes the unlock/progression incentive that makes Duolingo's track compelling, weakening the pull to keep playing and improve that the star & scoring system was meant to provide (turns 0, 18, 22).",
+        "Progress lives only in local storage with no accounts, so clearing browser data, a storage eviction, or a device change wipes his stars and best scores; the son 'would be very upset and come to me for aid,' and there is no server-side copy to restore from (turns 0, 10).",
+        "With the whole repertoire shipping bundled in each release, the app grows with the founder's ambitions \u2014 every added song and its audio adds weight to the install, on the very iPhone/iPad devices where a 7-year-old expects to open it and start immediately (turns 0, 4)."
+      ]
+    }
+  ],
+  "decision": {
+    "contract_version": "0.20.0",
+    "selected_concept_id": "concept:home-screen-offline-pwa-son-operated-music-studio",
+    "selected_concept": "Home-Screen Offline PWA \u2014 Son-Operated Music Studio",
+    "rationale": "It's what I wanted",
+    "founder_confirmed": true,
+    "source_turns": [
+      27
+    ]
+  }
+}
