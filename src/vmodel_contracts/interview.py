@@ -5,10 +5,10 @@ typed here so spec-generator never re-reads raw conversation.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from enum import Enum
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from .base import ContractModel
 from .requirements import RequirementKind
@@ -45,6 +45,29 @@ class IntentNeed(ContractModel):
     statement: str = Field(description="Founder-language need; no solution wording.")
     kind: RequirementKind = Field(description="functional behavior vs non-functional quality (security, performance, privacy, ...).")
     source_turns: list[int] = Field(default_factory=list, description="Transcript turns this need came from.")
+    deferred: bool = Field(
+        default=False,
+        description="True when the founder said this need is for later (a future commitment, not part of "
+        "this build). Set from the founder's wording, never inferred downstream. Additive; default False.",
+    )
+    amendment_id: str | None = Field(
+        default=None,
+        pattern=r"^AM-\d+$",
+        description="Set when the need was added by a founder amendment after the interview "
+        "(IntentModel.amendments). Such a need may have empty source_turns: its provenance is the amendment.",
+    )
+
+
+class FounderAmendment(ContractModel):
+    """A decision the founder made OUTSIDE the interview transcript (for example in a
+    review channel). Recorded with its source so renderers can show where it came from;
+    it never rewrites transcript turns."""
+
+    amendment_id: str = Field(pattern=r"^AM-\d+$")
+    statement: str = Field(min_length=1)
+    source: str = Field(default="founder-channel", description="Where the founder said it.")
+    decided_on: date
+    rationale: str = ""
 
 
 class Assumption(ContractModel):
@@ -182,7 +205,24 @@ class IntentModel(ContractModel):
         default_factory=list,
         description="Questions the founder could not answer. Carried into the punch list, never silently resolved.",
     )
+    amendments: list[FounderAmendment] = Field(
+        default_factory=list,
+        description="Founder decisions made after the interview, each with an AM-n id and its source. "
+        "Additive; old payloads parse with an empty list.",
+    )
     founder_register: FounderRegister | None = None
     source_turns: dict[str, list[int]] = Field(
         description="Field name -> transcript turn indexes the field was distilled from. Auditability, not decoration."
     )
+
+    @model_validator(mode="after")
+    def _amendment_refs_resolve(self) -> "IntentModel":
+        ids = [a.amendment_id for a in self.amendments]
+        dup = sorted({i for i in ids if ids.count(i) > 1})
+        if dup:
+            raise ValueError(f"duplicate amendment ids: {dup}")
+        missing = sorted({n.amendment_id for n in self.stakeholder_needs
+                          if n.amendment_id and n.amendment_id not in set(ids)})
+        if missing:
+            raise ValueError(f"needs cite unknown amendment ids: {missing}")
+        return self

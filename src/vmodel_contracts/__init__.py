@@ -23,7 +23,7 @@ from .artifact_lifecycle import (ArtifactState, LifecycleTransition, LifecycleEv
                                  validate_transition, append_lifecycle_event, mermaid_diagram, dot_diagram)
 from .compat import ContractVersionMismatch, check_compatible
 from .interview import (
-    Assumption, IntentNeed, ResearchBrief, InterviewTurn, InterviewTranscript, IntentModel, ScopeExclusion,
+    Assumption, FounderAmendment, IntentNeed, ResearchBrief, InterviewTurn, InterviewTranscript, IntentModel, ScopeExclusion,
     TechArea, TechPreference, TechStrength,
 )
 from .conops import (ConceptDecision, ConceptOption, ConOpsDocument, OperationalScenario, StakeholderContext)
@@ -77,7 +77,7 @@ __all__ = [
     "InterviewTranscript",
     "IntentModel",
     "Assumption", "ResearchBrief",
-    "ScopeExclusion", "TechArea", "TechPreference", "TechStrength", "IntentNeed",
+    "ScopeExclusion", "TechArea", "TechPreference", "TechStrength", "IntentNeed", "FounderAmendment",
     "ConOpsDocument", "StakeholderContext", "OperationalScenario",
     "ConceptOption", "ConceptDecision",
     "StakeholderNeed",
