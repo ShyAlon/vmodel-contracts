@@ -1,7 +1,17 @@
 """Open founder inputs and advisories survive every handoff as explicit data."""
+from datetime import datetime,timezone
 from typing import Literal
 from pydantic import Field,model_validator
 from .semantic_review import ReviewModel
+
+class FounderResolutionEntry(ReviewModel):
+    """One resolution of an open input. Entries are only ever appended; the item's own
+    status/decision/reason always mirror the latest entry."""
+    at:str=Field(min_length=1,max_length=64)
+    actor:str=Field(min_length=1,max_length=240)
+    status:Literal['decided','deferred']
+    decision:str|None=None
+    reason:str=Field(min_length=1,max_length=7000)
 
 class FounderDecision(ReviewModel):
     item_id:str=Field(min_length=1,max_length=200)
@@ -15,6 +25,7 @@ class FounderDecision(ReviewModel):
     blocks:list[str]=Field(default_factory=list)
     decision:str|None=None
     reason:str|None=None
+    history:list[FounderResolutionEntry]=Field(default_factory=list,max_length=1000)
 
     @model_validator(mode='after')
     def explicit_status(self):
@@ -55,11 +66,13 @@ class FounderInputResolution(ReviewModel):
         if self.status=='deferred' and self.decision:raise ValueError('deferral is not a decision')
         return self
 
-def apply_resolutions(register:FounderRegister,resolutions:list[dict],actor:str)->FounderRegister:
+def apply_resolutions(register:FounderRegister,resolutions:list[dict],actor:str,now:str|None=None)->FounderRegister:
+    at=now or datetime.now(timezone.utc).isoformat(timespec='seconds')
     values=register.model_dump();known={x['item_id']:x for x in values['items']};seen=set()
     for raw in resolutions:
         resolution=FounderInputResolution.model_validate(raw)
         if resolution.item_id in seen or resolution.item_id not in known:raise ValueError('unknown or repeated founder input')
         seen.add(resolution.item_id);item=known[resolution.item_id]
-        item.update(status=resolution.status,decision=resolution.decision,reason=resolution.reason,owner=actor)
+        entry={'at':at,'actor':actor,'status':resolution.status,'decision':resolution.decision,'reason':resolution.reason}
+        item.update(status=resolution.status,decision=resolution.decision,reason=resolution.reason,owner=actor,history=[*item.get('history',[]),entry])
     return FounderRegister.model_validate(values)

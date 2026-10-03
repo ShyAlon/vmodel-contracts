@@ -137,6 +137,6 @@ from .interactive import (INTERACTIVE_PROTOCOL_VERSION, EngineSnapshot, EventTyp
     SubmitInputResponse)
 
 from .semantic_review import SemanticFinding,ItemReviewDecision,SemanticReview,make_review
-from .founder_register import FounderDecision,FounderRegister,FounderInputResolution,ConstraintAdvisory,apply_resolutions
+from .founder_register import FounderDecision,FounderResolutionEntry,FounderRegister,FounderInputResolution,ConstraintAdvisory,apply_resolutions
 from .handoff import CodingHandoff
-__all__ += ["SemanticFinding","ItemReviewDecision","SemanticReview","make_review","FounderDecision","FounderRegister","FounderInputResolution","ConstraintAdvisory","apply_resolutions","CodingHandoff"]
+__all__ += ["SemanticFinding","ItemReviewDecision","SemanticReview","make_review","FounderDecision","FounderResolutionEntry","FounderRegister","FounderInputResolution","ConstraintAdvisory","apply_resolutions","CodingHandoff"]
