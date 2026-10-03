@@ -11,7 +11,7 @@ class FounderResolutionEntry(ReviewModel):
     actor:str=Field(min_length=1,max_length=240)
     status:Literal['decided','deferred']
     decision:str|None=None
-    reason:str=Field(min_length=1,max_length=7000)
+    reason:str|None=Field(default=None,max_length=7000)
     owner_before:str|None=Field(default=None,max_length=240)
 
 class FounderDecision(ReviewModel):
@@ -60,9 +60,10 @@ class FounderInputResolution(ReviewModel):
     item_id:str=Field(min_length=1,max_length=200)
     status:Literal['decided','deferred']
     decision:str|None=None
-    reason:str=Field(min_length=1,max_length=7000)
+    reason:str|None=Field(default=None,max_length=7000)
     @model_validator(mode='after')
     def explicit_decision(self):
+        self.reason=(self.reason or '').strip() or None
         if self.status=='decided' and not (self.decision or '').strip():raise ValueError('a decided input requires the founder answer')
         if self.status=='deferred' and self.decision:raise ValueError('deferral is not a decision')
         return self
@@ -74,6 +75,7 @@ def apply_resolutions(register:FounderRegister,resolutions:list[dict],actor:str,
         resolution=FounderInputResolution.model_validate(raw)
         if resolution.item_id in seen or resolution.item_id not in known:raise ValueError('unknown or repeated founder input')
         seen.add(resolution.item_id);item=known[resolution.item_id]
+        if item.get('blocks') and not resolution.reason:raise ValueError('a reason is required when the input blocks later work')
         entry={'at':at,'actor':actor,'status':resolution.status,'decision':resolution.decision,'reason':resolution.reason,'owner_before':item['owner']}
         item.update(status=resolution.status,decision=resolution.decision,reason=resolution.reason,owner=actor,history=[*item.get('history',[]),entry])
     return FounderRegister.model_validate(values)
