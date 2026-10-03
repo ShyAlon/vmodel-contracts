@@ -12,6 +12,7 @@ class FounderResolutionEntry(ReviewModel):
     status:Literal['decided','deferred']
     decision:str|None=None
     reason:str=Field(min_length=1,max_length=7000)
+    owner_before:str|None=Field(default=None,max_length=240)
 
 class FounderDecision(ReviewModel):
     item_id:str=Field(min_length=1,max_length=200)
@@ -73,6 +74,6 @@ def apply_resolutions(register:FounderRegister,resolutions:list[dict],actor:str,
         resolution=FounderInputResolution.model_validate(raw)
         if resolution.item_id in seen or resolution.item_id not in known:raise ValueError('unknown or repeated founder input')
         seen.add(resolution.item_id);item=known[resolution.item_id]
-        entry={'at':at,'actor':actor,'status':resolution.status,'decision':resolution.decision,'reason':resolution.reason}
+        entry={'at':at,'actor':actor,'status':resolution.status,'decision':resolution.decision,'reason':resolution.reason,'owner_before':item['owner']}
         item.update(status=resolution.status,decision=resolution.decision,reason=resolution.reason,owner=actor,history=[*item.get('history',[]),entry])
     return FounderRegister.model_validate(values)

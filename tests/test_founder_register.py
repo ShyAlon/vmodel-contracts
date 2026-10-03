@@ -21,6 +21,7 @@ def test_resolutions_append_history_and_current_state_is_the_latest_entry():
  assert [(h.actor,h.decision,h.at) for h in item.history]==[('ann','Blue','2026-10-03T10:00:00+00:00'),('ben','Green','2026-10-03T11:00:00+00:00')]
  assert (item.status,item.decision,item.reason)==('decided','Green','Changed my mind')
  assert d.items[0].decision=='Blue' and len(d.items[0].history)==1
+ assert [h.owner_before for h in item.history]==['founder','ann']
 
 def test_defer_after_decision_is_recorded_and_register_without_history_still_loads():
  d=apply_resolutions(_reg(),[{'item_id':'style','status':'decided','decision':'Blue','reason':'Calm'}],'ann')
