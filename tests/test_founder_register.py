@@ -29,3 +29,14 @@ def test_defer_after_decision_is_recorded_and_register_without_history_still_loa
  assert later.items[0].decision is None and [h.status for h in later.items[0].history]==['decided','deferred']
  legacy=d.model_dump(mode='json');[i.pop('history') for i in legacy['items']]
  assert FounderRegister.model_validate(legacy).items[0].history==[]
+
+def _free():
+ return FounderRegister(session_id='s',items=[FounderDecision(item_id='free',data_class='content',question='Tone?',owner='founder',scope='UI',source='Interview',blocks=[])])
+
+def test_reason_is_optional_when_the_input_blocks_nothing_and_required_when_it_does():
+ ok=apply_resolutions(_free(),[{'item_id':'free','status':'decided','decision':'Friendly'}],'ann')
+ assert ok.items[0].decision=='Friendly' and ok.items[0].reason is None and ok.items[0].history[0].reason is None
+ assert apply_resolutions(_free(),[{'item_id':'free','status':'deferred','reason':'  '}],'ann').items[0].reason is None
+ with pytest.raises(ValueError,match='blocks later work'):apply_resolutions(_reg(),[{'item_id':'style','status':'decided','decision':'Blue'}],'ann')
+ with pytest.raises(ValueError,match='blocks later work'):apply_resolutions(_reg(),[{'item_id':'style','status':'deferred','reason':' '}],'ann')
+ with pytest.raises(ValueError):apply_resolutions(_free(),[{'item_id':'free','status':'decided','reason':'x'}],'ann')
