@@ -48,7 +48,6 @@ class TestExecution(ContractModel):
     command: str | None = None
     expected_exit: int | None = None
     expected_stdout_contains: str | None = None
-    selector: str | None = None
 
 
 class TestDefinition(ContractModel):
@@ -92,7 +91,7 @@ class AcceptanceTest(ContractModel):
     criterion_id: str | None = Field(default=None, description="AC-id this test realizes (acceptance level).")
     spec_id: str | None = Field(default=None, description="SPEC-id this test targets (lower levels).")
     description: str
-    runner: str = Field(description="'http' | 'dom' | 'cli' | 'static' | 'semantic'")
+    runner: str = Field(description="'http' | 'ui' | 'cli' | 'static' | 'semantic'")
     definition: TestDefinition
 
 

@@ -1,9 +1,9 @@
 {
-  "contract_version": "0.20.0",
+  "contract_version": "0.21.0",
   "session_id": "cef8ed07-0894-4f4e-bd40-2455fbfd0fa3",
   "stakeholder_context": [
     {
-      "contract_version": "0.20.0",
+      "contract_version": "0.21.0",
       "stakeholder": "The founder's son, a 7-year-old boy who likes Duolingo Music but has limited access (primary user)",
       "role": "The founder's son, a 7-year-old boy who likes Duolingo Music but has limited access (primary user)",
       "goals": [
@@ -33,7 +33,7 @@
       ]
     },
     {
-      "contract_version": "0.20.0",
+      "contract_version": "0.21.0",
       "stakeholder": "The founder/developers, who own and maintain the lesson content (secondary)",
       "role": "The founder/developers, who own and maintain the lesson content (secondary)",
       "goals": [
@@ -66,7 +66,7 @@
   ],
   "operational_scenarios": [
     {
-      "contract_version": "0.20.0",
+      "contract_version": "0.21.0",
       "scenario_id": "OS-1",
       "name": "When something goes wrong while he's using it - a lesson won't load, his progress gets lost, or the sound doesn't play - he would be very upset and come to me for aid; this is acceptable.",
       "trigger": "The son is using the app and something goes wrong mid-use \u2014 a lesson won't load, his progress gets lost, or the sound doesn't play \u2014 at which point he becomes very upset and comes to the founder for aid (the founder accepts this as the expected handling).",
@@ -91,7 +91,7 @@
       ]
     },
     {
-      "contract_version": "0.20.0",
+      "contract_version": "0.21.0",
       "scenario_id": "OS-2",
       "name": "We (the developers) own and maintain the lesson content - the tunes, notes, and game sequences.",
       "trigger": "The founder/developers need to author, derive, or revise the built-in lesson content (the tunes, notes and game sequences) that ships with the app \u2014 because they own and maintain it, and it must derive from the Duolingo Music track \u2014 so the son always opens the app and starts the next lesson with a complete, self-contained set of lessons, warmups and full songs.",
@@ -118,7 +118,7 @@
   ],
   "concept_options": [
     {
-      "contract_version": "0.20.0",
+      "contract_version": "0.21.0",
       "concept_id": "concept:home-screen-offline-pwa-son-operated-music-studio",
       "name": "Home-Screen Offline PWA \u2014 Son-Operated Music Studio",
       "summary": "A single installable web app, added once to the home screen of the son's iPhone or iPad, that opens full-screen with no browser chrome, no account, no sign-in and no network. He taps the icon, the app resumes his saved progress from the device's local storage, and drops him straight into the next lesson on a Duolingo-Music-style path. A lesson runs as one continuous guided session: play simple tunes on the on-screen piano keyboard by tapping and dragging keys to match notes, play ear-training games that ask him to listen to pitches and rhythms and identify what he heard, and do staff sight-reading that maps printed notes onto keyboard geography. When a song comes up, he can take low-stakes pre-song warmups on individual measures before attempting the full recital, which is scored out of 1,000 points on pitch and rhythm accuracy and awards up to three stars that he improves by repeating attempts. Grading is honest and names the specific kind of failure, and he can retry a song indefinitely or switch to another exercise whenever he wants. All lessons, audio and scoring rules travel inside the app and are cached on the device, so GitHub Pages and GitHub Actions are touched only when the founder publishes a content update; during operation the app is fully self-contained and reaches nothing external, which is what keeps the experience lag-free and sound in sync. Lesson content is the founder's to author and version, so new tunes, notes and game sequences arrive as ordinary releases through the same pipeline rather than as any change to how the boy uses the app. The operating concept deliberately has no recovery experience: if a lesson won't load, progress is lost or audio won't play, he comes to the founder, and design effort stays on the lesson itself and on whether the game holds his interest over the long run.",
@@ -146,7 +146,7 @@
       ]
     },
     {
-      "contract_version": "0.20.0",
+      "contract_version": "0.21.0",
       "concept_id": "concept:founder-published-repertoire-shelf-curated-practice-room",
       "name": "Founder-Published Repertoire Shelf \u2014 Curated Practice Room",
       "summary": "Instead of a Duolingo-style linear lesson path that auto-serves the next lesson, this concept treats the app as a fixed, founder-curated practice room. The founder/developers assemble the full body of lesson content \u2014 warmups, ear-training games, sight-reading drills and full song recitals \u2014 into a versioned content release published through GitHub, and that entire shelf ships with the app so it is fully self-contained at runtime. The son's device holds a stable repertoire he picks from directly: he chooses a warmup, a game, or a song recital whenever he wants, drills a specific measure as many times as he likes, and sees his stars and best scores sitting on each item's tile rather than unlocking them by advancing through a prescribed sequence. Because the shelf is fixed per release, every lesson he sees is the same set until a new release is published, making it easy for the founder to add songs, adjust difficulty, or retire a frustrating exercise and have the son's next visit simply reflect the new library; all progress, stars and scores persist in local storage, with no accounts and no runtime dependencies beyond the device.",
@@ -170,7 +170,7 @@
     }
   ],
   "decision": {
-    "contract_version": "0.20.0",
+    "contract_version": "0.21.0",
     "selected_concept_id": "concept:home-screen-offline-pwa-son-operated-music-studio",
     "selected_concept": "Home-Screen Offline PWA \u2014 Son-Operated Music Studio",
     "rationale": "It's what I wanted",
