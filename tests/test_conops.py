@@ -31,7 +31,7 @@ def _payload():
 
 def test_conops_round_trip_and_version_stamp():
     doc = ConOpsDocument.model_validate(_payload())
-    assert doc.contract_version == CONTRACT_VERSION == "0.21.0"
+    assert doc.contract_version == CONTRACT_VERSION == "0.22.0"
     assert doc.decision.selected_concept == "Native app"
     assert ConOpsDocument.model_validate(doc.model_dump()).operational_scenarios[0].scenario_id == "OS-1"
 

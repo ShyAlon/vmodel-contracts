@@ -1,5 +1,5 @@
 {
-  "contract_version": "0.21.0",
+  "contract_version": "0.22.0",
   "session_id": "cef8ed07-0894-4f4e-bd40-2455fbfd0fa3",
   "problem_statement": "Build a PWA that replicates the UI/UX and lesson content of the Duolingo Music track so a 7-year-old boy whose access to Duolingo Music is limited can play the full set of music lessons (keyboard playing, games, grading) on his own device.",
   "target_users": [
@@ -9,7 +9,7 @@
   "core_value_proposition": "Give the son unrestricted, self-contained access to a Duolingo-Music-style learning experience \u2014 lessons, on-screen piano keyboard, ear training, sight-reading, warmups and scored full-song recitals \u2014 that runs offline in the browser with no accounts and no external data sources.",
   "stakeholder_needs": [
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-1",
       "statement": "I want a PWA which will replicate the UI and UX of the Duolingo Music track, including all the lessons.",
       "kind": "functional",
@@ -18,7 +18,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-2",
       "statement": "It shouldn't bother with user management.",
       "kind": "functional",
@@ -27,7 +27,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-3",
       "statement": "Persist the data in the browser's local storage.",
       "kind": "functional",
@@ -36,7 +36,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-4",
       "statement": "It should support at least iPhone and iPad.",
       "kind": "non_functional",
@@ -45,7 +45,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-5",
       "statement": "Use GitHub Actions and deploy in GitHub Pages.",
       "kind": "non_functional",
@@ -54,7 +54,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-6",
       "statement": "The app shouldn't rely on any external data sources.",
       "kind": "non_functional",
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-7",
       "statement": "The user is my son, a 7 year old boy; he likes Duolingo Music, but his access is limited.",
       "kind": "functional",
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-8",
       "statement": "He opens the app and starts the next lesson; it walks him through playing simple tunes with the on-screen keyboard and plays games until the lesson is over, when he is graded for his performance.",
       "kind": "functional",
@@ -81,7 +81,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-9",
       "statement": "The lesson content should derive from the Duolingo Music track (this should be included in the requirements).",
       "kind": "functional",
@@ -90,7 +90,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-10",
       "statement": "GitHub should be used as infrastructure - serving the app, source control and CI/CD; during the operation of the app it should be self contained.",
       "kind": "non_functional",
@@ -99,7 +99,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-11",
       "statement": "A bit of lagging is fine, but it shouldn't happen too often; since the experience should be mostly offline there's no reason for issues.",
       "kind": "non_functional",
@@ -108,7 +108,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-12",
       "statement": "Songs should be popular songs - better if unlicensed.",
       "kind": "functional",
@@ -117,7 +117,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-13",
       "statement": "The app should be honest about the results (grading of his performance).",
       "kind": "functional",
@@ -126,7 +126,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-14",
       "statement": "The feedback should be precise on the type of failure.",
       "kind": "functional",
@@ -135,7 +135,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "need_id": "SN-15",
       "statement": "The app should allow retrying (indefinitely) or switching to another exercise.",
       "kind": "functional",
@@ -180,28 +180,28 @@
   "assumptions": [],
   "assumption_items": [
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "statement": "That the game will be enough to keep him entertained in the long run.",
       "source_turns": [
         16
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "statement": "Since the experience should be mostly offline there's no reason for issues (lag or sound sync problems).",
       "source_turns": [
         12
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "statement": "FOUNDER-DELEGATED: risks - after two interview attempts, the remaining detail is left open for the spec/architecture stage instead of being re-asked. The founder's latest response was: 'That the game will be enough to keep him entertained in the long run.'.",
       "source_turns": [
         16
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "statement": "FOUNDER-DELEGATED: glossary - after two interview attempts, the remaining detail is left open for the spec/architecture stage instead of being re-asked. The founder's latest response was: 'A good result would be at least 75% right. The app should be honest about the results.'.",
       "source_turns": [
         22
@@ -210,7 +210,7 @@
   ],
   "scope_exclusions": [
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "item": "User management (accounts, login, profiles)",
       "source_turns": [
         0
@@ -218,7 +218,7 @@
       "explicit": true
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "item": "External data sources while the app is operating (app is self-contained at runtime)",
       "source_turns": [
         0,
@@ -227,7 +227,7 @@
       "explicit": true
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "item": "Runtime third-party services such as analytics or a CDN",
       "source_turns": [
         8
@@ -235,7 +235,7 @@
       "explicit": true
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "item": "Licensed Sony Music tracks (popular songs preferred, better if unlicensed)",
       "source_turns": [
         18,
@@ -245,7 +245,7 @@
       "explicit": true
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "item": "Robust error-handling / recovery experience for load failures, lost progress or missing sound",
       "source_turns": [
         9,
@@ -254,7 +254,7 @@
       "explicit": true
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "item": "Server-side persistence and cross-device sync",
       "source_turns": [
         0
@@ -262,7 +262,7 @@
       "explicit": false
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "item": "Support for platforms beyond iPhone and iPad (e.g. Android, desktop)",
       "source_turns": [
         0
@@ -298,7 +298,7 @@
   ],
   "research_briefs": [
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "topic": "risks",
       "brief": "Research the unresolved risks question from current authoritative sources and present the method or choice at the review gate.",
       "source_turns": [
@@ -306,7 +306,7 @@
       ]
     },
     {
-      "contract_version": "0.21.0",
+      "contract_version": "0.22.0",
       "topic": "glossary",
       "brief": "Research the unresolved glossary question from current authoritative sources and present the method or choice at the review gate.",
       "source_turns": [
