@@ -91,8 +91,48 @@ class AcceptanceTest(ContractModel):
     criterion_id: str | None = Field(default=None, description="AC-id this test realizes (acceptance level).")
     spec_id: str | None = Field(default=None, description="SPEC-id this test targets (lower levels).")
     description: str
-    runner: str = Field(description="'http' | 'ui' | 'cli' | 'static' | 'semantic'")
+    runner: str = Field(description="'http' | 'ui' | 'cli' | 'static' - machine-verifiable only; a check only a human can judge is a ValidationItem")
+    components: list[str] = Field(
+        min_length=1,
+        description="Names of the architecture components this test exercises (ArchitectureOverview.components[].name).",
+    )
     definition: TestDefinition
+
+
+class ValidationItem(ContractModel):
+    """One human judgment the machine tests cannot make: did we build the right
+    system for the stakeholder. Lives in validation.json, apart from tests.json,
+    and links to the need it validates."""
+
+    validation_id: str = Field(pattern=r"^V-\d+$")
+    need_ids: list[str] = Field(min_length=1, description="N-ids of the stakeholder needs this item validates.")
+    criterion_id: str | None = Field(
+        default=None,
+        description="AC-id whose machine proxy this pairs with. Empty for a need whose success is purely human-judged.",
+    )
+    components: list[str] = Field(default_factory=list, description="Architecture component names involved.")
+    what_the_human_does: str = Field(description="The interaction, in product terms.")
+    what_to_observe: str = Field(description="What the person looks or listens for.")
+    pass_when: str = Field(description="What counts as a pass, in the human's terms.")
+    evidence: str = Field(description="How the result is recorded.")
+    environment: str = Field(description="Device or setting required, e.g. 'physical iPhone and iPad'.")
+    verified_by: list[str] = Field(
+        default_factory=list,
+        description="T-ids of the machine tests covering the measurable proxy; empty when none exists.",
+    )
+
+
+class ValidationPlan(ContractModel):
+    session_id: str
+    items: list[ValidationItem]
+
+    @model_validator(mode="after")
+    def unique_validation_ids(self):
+        ids = [i.validation_id for i in self.items]
+        dup = sorted({i for i in ids if ids.count(i) > 1})
+        if dup:
+            raise ValueError(f"duplicate validation_id: {', '.join(dup)}")
+        return self
 
 
 class TestResult(ContractModel):

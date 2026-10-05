@@ -4,7 +4,7 @@ def fixture():
  n=StakeholderNeedsSet(session_id="s",needs=[StakeholderNeed(need_id="N-1",stakeholder="u",statement="x",kind="functional",intent_fields=[],intent_need_ids=["SN-1"])])
  r=Requirement(requirement_id="R-1",title="x",statement="System shall x",priority="must",kind="functional",acceptance=[AcceptanceCriterion(criterion_id="AC-1",statement="x")],need_ids=["N-1"],intent_fields=[])
  rs=RequirementSet(session_id="s",requirements=[r]); i=ItemSpec(spec_id="SPEC-1",slug="x",kind="api_surface",title="x",body_markdown="x",requirement_ids=["R-1"])
- t=AcceptanceTest(test_id="T-1",level="acceptance",criterion_id="AC-1",description="x",runner="http",definition={"preconditions":[],"steps":[],"expected_outcomes":[],"cleanup":[],"cases":[],"execution":{}})
+ t=AcceptanceTest(test_id="T-1",level="acceptance",criterion_id="AC-1",description="x",runner="http",components=["Api"],definition={"preconditions":[],"steps":[],"expected_outcomes":[],"cleanup":[],"cases":[],"execution":{}})
  tr=TraceabilityEntry(requirement_id="R-1",spec_ids=["SPEC-1"],acceptance_criterion_ids=["AC-1"],test_ids=["T-1"])
  return n,rs,[i],[t],[tr]
 
