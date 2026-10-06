@@ -138,6 +138,22 @@ class ResearchBrief(ContractModel):
     source_turns: list[int] = Field(min_length=1)
 
 
+class ReferenceKind(str, Enum):
+    WORKING_TITLE = "working_title"
+    COMPETITOR = "competitor"
+    REFERENCE_PRODUCT = "reference_product"
+
+
+class ReferenceName(ContractModel):
+    """A name the founder used for orientation (working title, competitor, product to emulate).
+    It belongs in the interview record, never in the spec prose. The provenance lint
+    (text_qa.reference_name_findings) flags it wherever it leaks downstream."""
+
+    name: str = Field(min_length=1)
+    kind: ReferenceKind
+    source_turns: list[int] = Field(default_factory=list)
+
+
 class IntentModel(ContractModel):
     """The distilled 'what are we actually building' the spec hangs off.
 
@@ -196,6 +212,11 @@ class IntentModel(ContractModel):
         default_factory=list,
         description="Operational/support processes the founder described (e.g. 'support team handles "
         "failures'). Not system requirements - captured so they are not lost or misclassified as NFRs.",
+    )
+    reference_names: list[ReferenceName] = Field(
+        default_factory=list,
+        description="ADDED 0.23.0: working title, competitors and reference products the founder named, "
+        "with kind and source turns. Input to the provenance lint; empty means none were recorded.",
     )
     research_briefs: list[ResearchBrief] = Field(
         default_factory=list,

@@ -24,11 +24,11 @@ from .artifact_lifecycle import (ArtifactState, LifecycleTransition, LifecycleEv
 from .compat import ContractVersionMismatch, check_compatible
 from .interview import (
     Assumption, FounderAmendment, IntentNeed, ResearchBrief, InterviewTurn, InterviewTranscript, IntentModel, ScopeExclusion,
-    TechArea, TechPreference, TechStrength,
+    TechArea, TechPreference, TechStrength, ReferenceKind, ReferenceName,
 )
 from .conops import (ConceptDecision, ConceptOption, ConOpsDocument, OperationalScenario, StakeholderContext)
 from .needs import StakeholderNeed, StakeholderNeedsSet
-from .requirements import AcceptanceCriterion, Priority, Requirement, RequirementKind, RequirementSet
+from .requirements import AcceptanceCriterion, MergedRequirement, Priority, Requirement, RequirementKind, RequirementSet
 from .architecture import ArchitectureDecision, ArchitectureOverview, TechnologySelection, ComponentSpec, StackEntry, StackEntryDisposition, StackEntryStatus
 from .baseline import BaselineMode, RepositoryManifest, SystemBaseline
 from .spec import (
@@ -86,7 +86,7 @@ __all__ = [
     "StakeholderNeedsSet",
     "AcceptanceCriterion",
     "Priority",
-    "Requirement", "RequirementKind",
+    "Requirement", "RequirementKind", "MergedRequirement", "ReferenceKind", "ReferenceName",
     "RequirementSet",
     "ArchitectureDecision", "TechnologySelection",
     "ArchitectureOverview",

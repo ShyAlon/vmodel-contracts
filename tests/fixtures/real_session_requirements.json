@@ -1,0 +1,415 @@
+[
+ {
+  "requirement_id": "R-1",
+  "title": "Installable app with a structured, replayable lesson course",
+  "statement": "The app shall be installable on a supported mobile device and shall present a course of lessons that a child can start, complete and replay without any adult assistance.",
+  "priority": "must",
+  "acceptance": [
+   {
+    "criterion_id": "AC-1",
+    "statement": "The app can be installed on a supported device and launched from the device's home screen without a browser address bar being visible."
+   },
+   {
+    "criterion_id": "AC-2",
+    "statement": "On first launch the app presents a course made up of units, each unit containing sub-sections, and each sub-section containing lessons."
+   },
+   {
+    "criterion_id": "AC-3",
+    "statement": "A lesson can be started by the child with a single action and runs for a short, self-contained session."
+   },
+   {
+    "criterion_id": "AC-4",
+    "statement": "Every lesson that has been completed can be replayed at any time by the child, and replaying it does not require any adult action."
+   },
+   {
+    "criterion_id": "AC-5",
+    "statement": "A child can move from one lesson to the next within a unit without leaving the app or being asked to sign in."
+   },
+   {
+    "criterion_id": "AC-6",
+    "statement": "The app remains usable and displays its content when the device has no network connection."
+   }
+  ],
+  "kind": "functional",
+  "need_ids": [
+   "N-1"
+  ],
+  "intent_fields": [
+   "stakeholder_needs"
+  ]
+ },
+ {
+  "requirement_id": "R-9",
+  "title": "Five-Key Keyboard Geography and Note Labeling Lessons",
+  "statement": "The app shall provide early lessons in which the child is presented with a small virtual keyboard spanning five consecutive keys and shall match letter names to specific keys using color-coded visual prompts.",
+  "priority": "must",
+  "acceptance": [
+   {
+    "criterion_id": "AC-42",
+    "statement": "A lesson presents a virtual keyboard containing exactly five keys."
+   },
+   {
+    "criterion_id": "AC-43",
+    "statement": "Each key on the virtual keyboard is associated with a distinct color-coded visual prompt."
+   },
+   {
+    "criterion_id": "AC-44",
+    "statement": "A lesson presents a letter name and the child can select the corresponding key on the virtual keyboard."
+   },
+   {
+    "criterion_id": "AC-45",
+    "statement": "When the child selects the key matching the presented letter name, the app indicates the selection is correct."
+   },
+   {
+    "criterion_id": "AC-46",
+    "statement": "When the child selects a key that does not match the presented letter name, the app indicates the selection is incorrect and shows the correct key."
+   },
+   {
+    "criterion_id": "AC-47",
+    "statement": "The child can complete a keyboard geography and note labeling lesson without any adult assistance."
+   }
+  ],
+  "kind": "functional",
+  "need_ids": [
+   "N-9"
+  ],
+  "intent_fields": [
+   "stakeholder_needs"
+  ]
+ },
+ {
+  "requirement_id": "R-10",
+  "title": "Staff Sight-Reading Exercises",
+  "statement": "The app shall present sight-reading exercises in which a note is shown on a standard musical staff and the child places that note onto the correct staff position or the correct key, without letter names being displayed.",
+  "priority": "must",
+  "acceptance": [
+   {
+    "criterion_id": "AC-48",
+    "statement": "A sight-reading exercise displays a note on a standard musical staff with no letter name shown."
+   },
+   {
+    "criterion_id": "AC-49",
+    "statement": "The child can place a note onto a staff position by dragging it, and the app records whether the placed position matches the note shown."
+   },
+   {
+    "criterion_id": "AC-50",
+    "statement": "The child can place a note onto a key, and the app records whether the placed key matches the note shown."
+   },
+   {
+    "criterion_id": "AC-51",
+    "statement": "A correct placement is confirmed to the child as correct."
+   },
+   {
+    "criterion_id": "AC-52",
+    "statement": "An incorrect placement is shown to the child as wrong and indicates the correct placement."
+   },
+   {
+    "criterion_id": "AC-53",
+    "statement": "Sight-reading exercises are reachable as part of the lesson sequence after letter-name lessons."
+   }
+  ],
+  "kind": "functional",
+  "need_ids": [
+   "N-10"
+  ],
+  "intent_fields": [
+   "stakeholder_needs"
+  ]
+ },
+ {
+  "requirement_id": "R-11",
+  "title": "Ear training: matching heard pitches to letters or staff positions",
+  "statement": "The app shall present ear-training exercises in which a short audio clip is played and the child selects the matching pitch letter or the matching position on the staff, and shall indicate whether the selection is correct.",
+  "priority": "must",
+  "acceptance": [
+   {
+    "criterion_id": "AC-54",
+    "statement": "When an ear-training exercise starts, a short audio clip is played for the child."
+   },
+   {
+    "criterion_id": "AC-55",
+    "statement": "The child can respond to the played clip by choosing a pitch letter."
+   },
+   {
+    "criterion_id": "AC-56",
+    "statement": "The child can respond to the played clip by choosing a position on the staff."
+   },
+   {
+    "criterion_id": "AC-57",
+    "statement": "After the child responds, the app shows whether the response was correct."
+   },
+   {
+    "criterion_id": "AC-58",
+    "statement": "When the response is incorrect, the app shows which response was correct."
+   },
+   {
+    "criterion_id": "AC-59",
+    "statement": "The child can replay the audio clip of the current exercise without leaving the exercise."
+   },
+   {
+    "criterion_id": "AC-60",
+    "statement": "The child can move to the next exercise after responding."
+   },
+   {
+    "criterion_id": "AC-61",
+    "statement": "Ear-training exercises are available without any network connection."
+   }
+  ],
+  "kind": "functional",
+  "need_ids": [
+   "N-11"
+  ],
+  "intent_fields": [
+   "stakeholder_needs"
+  ]
+ },
+ {
+  "requirement_id": "R-16",
+  "title": "Bundled Lesson Content and Free Backing Tunes",
+  "statement": "The app shall ship with all lesson content and all backing tunes already included in the delivered app, so that every lesson and every play-along performance is fully usable without retrieving any content or audio from outside the app.",
+  "priority": "must",
+  "acceptance": [
+   {
+    "criterion_id": "AC-89",
+    "statement": "Every lesson in every unit can be opened and completed with no content or audio fetched from outside the app."
+   },
+   {
+    "criterion_id": "AC-90",
+    "statement": "Every play-along song performance plays its full backing tune with no audio fetched from outside the app."
+   },
+   {
+    "criterion_id": "AC-91",
+    "statement": "All tunes included in the app are free to use, with no paid or proprietary music present."
+   },
+   {
+    "criterion_id": "AC-92",
+    "statement": "The app functions identically for lesson content and audio when the device has no network connection."
+   },
+   {
+    "criterion_id": "AC-93",
+    "statement": "No lesson or song in the app is missing its content or its backing tune."
+   }
+  ],
+  "kind": "functional",
+  "need_ids": [
+   "N-16"
+  ],
+  "intent_fields": [
+   "stakeholder_needs"
+  ]
+ },
+ {
+  "requirement_id": "R-18",
+  "title": "Persistence of all progress data across app sessions",
+  "statement": "The app shall retain all progress data - the completion status of each lesson, earned scores, recorded mistakes, and streak information - so that when the child closes the app and reopens it, every previously recorded value is still present and unchanged.",
+  "priority": "must",
+  "acceptance": [
+   {
+    "criterion_id": "AC-99",
+    "statement": "After a lesson is completed and the app is closed and reopened, that lesson still shows as completed."
+   },
+   {
+    "criterion_id": "AC-100",
+    "statement": "After a score is earned in a lesson and the app is closed and reopened, the same score is shown for that lesson."
+   },
+   {
+    "criterion_id": "AC-101",
+    "statement": "After a mistake is made in a lesson and the app is closed and reopened, that mistake is still recorded."
+   },
+   {
+    "criterion_id": "AC-102",
+    "statement": "After a day on which at least one lesson was completed, the streak count shown after reopening the app is the same as before closing it."
+   },
+   {
+    "criterion_id": "AC-103",
+    "statement": "No progress data is lost or reset by closing and reopening the app."
+   },
+   {
+    "criterion_id": "AC-104",
+    "statement": "All progress data remains available after the app is reopened without any action by the child or a parent."
+   }
+  ],
+  "kind": "functional",
+  "need_ids": [
+   "N-18"
+  ],
+  "intent_fields": [
+   "stakeholder_needs"
+  ]
+ },
+ {
+  "requirement_id": "R-3",
+  "title": "Local persistence of all progress data",
+  "statement": "All data the app keeps about a child's progress \u2014 lesson status, scores, recorded mistakes, streaks and any other progress data \u2014 shall be stored in the browser's local storage on the device, and shall remain available after the app is closed and reopened, without any server-side or cloud store.",
+  "priority": "must",
+  "acceptance": [
+   {
+    "criterion_id": "AC-11",
+    "statement": "After a child completes a lesson, closing the app and reopening it on the same device shows that lesson as completed."
+   },
+   {
+    "criterion_id": "AC-12",
+    "statement": "Scores, recorded mistakes and streak information recorded in a session are still present after the app is closed and reopened on the same device."
+   },
+   {
+    "criterion_id": "AC-13",
+    "statement": "No progress data is sent to or retrieved from any server or cloud service at any time."
+   },
+   {
+    "criterion_id": "AC-14",
+    "statement": "Clearing the browser's local storage for the app results in the app starting afresh, with no progress data remaining."
+   },
+   {
+    "criterion_id": "AC-15",
+    "statement": "Progress data recorded on one device is not automatically available on another device."
+   }
+  ],
+  "kind": "non_functional",
+  "need_ids": [
+   "N-3"
+  ],
+  "intent_fields": [
+   "stakeholder_needs"
+  ]
+ },
+ {
+  "requirement_id": "R-6",
+  "title": "Operation Without External Data Sources",
+  "statement": "The app shall deliver all lesson content, exercises and audio to the child without retrieving any data from outside the app at runtime.",
+  "priority": "must",
+  "acceptance": [
+   {
+    "criterion_id": "AC-27",
+    "statement": "With the device disconnected from all networks, every lesson, exercise and audio clip in the app remains fully available and playable."
+   },
+   {
+    "criterion_id": "AC-28",
+    "statement": "A child can start the app, complete a lesson and complete a song performance with no network connection at any point."
+   },
+   {
+    "criterion_id": "AC-29",
+    "statement": "No lesson, exercise or audio content is missing, degraded or replaced by a placeholder when the app runs without network access."
+   },
+   {
+    "criterion_id": "AC-30",
+    "statement": "The app never displays an error, delay or prompt caused by an attempt to reach an outside source while the child is using it."
+   }
+  ],
+  "kind": "non_functional",
+  "need_ids": [
+   "N-6"
+  ],
+  "intent_fields": [
+   "stakeholder_needs"
+  ]
+ },
+ {
+  "requirement_id": "R-7",
+  "title": "Free-to-use tunes",
+  "statement": "Every tune bundled with the app shall be free to use, with no paid or proprietary music included.",
+  "priority": "must",
+  "acceptance": [
+   {
+    "criterion_id": "AC-31",
+    "statement": "Each tune shipped in the app is free to use."
+   },
+   {
+    "criterion_id": "AC-32",
+    "statement": "No tune shipped in the app is paid or proprietary."
+   },
+   {
+    "criterion_id": "AC-33",
+    "statement": "A child can play every bundled tune without any licensing restriction being triggered."
+   }
+  ],
+  "kind": "non_functional",
+  "need_ids": [
+   "N-7"
+  ],
+  "intent_fields": [
+   "stakeholder_needs"
+  ]
+ },
+ {
+  "requirement_id": "R-8",
+  "title": "Child-appropriate usability for a 7-year-old",
+  "statement": "The app shall be operable by a 7-year-old child without adult assistance, such that every lesson, exercise and song performance can be started, played and completed using only the child's own interactions.",
+  "priority": "must",
+  "acceptance": [
+   {
+    "criterion_id": "AC-34",
+    "statement": "A 7-year-old child can begin a lesson from the app's opening screen without any adult help."
+   },
+   {
+    "criterion_id": "AC-35",
+    "statement": "A 7-year-old child can complete a lesson and reach its end without any adult help."
+   },
+   {
+    "criterion_id": "AC-36",
+    "statement": "A 7-year-old child can replay a previously completed lesson without any adult help."
+   },
+   {
+    "criterion_id": "AC-37",
+    "statement": "A 7-year-old child can complete a play-along song performance without any adult help."
+   },
+   {
+    "criterion_id": "AC-38",
+    "statement": "No screen in the app requires reading text beyond the level a 7-year-old can read, or requires an adult to interpret it."
+   },
+   {
+    "criterion_id": "AC-39",
+    "statement": "No screen in the app requires a parent, teacher or guardian to be present or to take any action."
+   },
+   {
+    "criterion_id": "AC-40",
+    "statement": "Every interactive element a child must use is reachable and usable on both a phone-sized and a tablet-sized touch screen."
+   },
+   {
+    "criterion_id": "AC-41",
+    "statement": "A child who makes a mistake is shown that the answer was wrong and is shown how to do it correctly, without needing to ask an adult."
+   }
+  ],
+  "kind": "non_functional",
+  "need_ids": [
+   "N-8"
+  ],
+  "intent_fields": [
+   "stakeholder_needs"
+  ]
+ },
+ {
+  "requirement_id": "R-17",
+  "title": "Bundled Lesson Content and Audio",
+  "statement": "The app shall make all lesson content and all audio assets available to the child without retrieving any of them from an external source at runtime.",
+  "priority": "must",
+  "acceptance": [
+   {
+    "criterion_id": "AC-94",
+    "statement": "With the device in airplane mode, every lesson in the course can be opened and completed."
+   },
+   {
+    "criterion_id": "AC-95",
+    "statement": "With the device in airplane mode, every audio clip used by ear training, rhythm and song performance lessons plays."
+   },
+   {
+    "criterion_id": "AC-96",
+    "statement": "No lesson content or audio asset is fetched from outside the app while the child uses it."
+   },
+   {
+    "criterion_id": "AC-97",
+    "statement": "A lesson opened for the first time behaves the same as a lesson that has been opened before, with no waiting for content to arrive."
+   },
+   {
+    "criterion_id": "AC-98",
+    "statement": "The app's bundled content covers every lesson and every song performance in the course."
+   }
+  ],
+  "kind": "non_functional",
+  "need_ids": [
+   "N-17"
+  ],
+  "intent_fields": [
+   "stakeholder_needs"
+  ]
+ }
+]
