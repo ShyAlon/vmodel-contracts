@@ -18,17 +18,34 @@ def test_old_disposition_without_decision_validates():
 
 
 def test_decided_slot_is_not_open():
-    d = FounderStackDecision(text="SQLite", actor="founder", at="2026-10-06T12:00:00Z")
+    d = FounderStackDecision(text="SQLite", reason="Already in the baseline", actor="founder", at="2026-10-06T12:00:00Z")
     ov = _overview([_slot("database", d), _slot("queue")])
     assert [x.key for x in open_stack_decisions(ov)] == ["queue"]
 
 
 def test_blank_decision_rejected():
     with pytest.raises(ValidationError):
-        FounderStackDecision(text="   ", actor="founder", at="2026-10-06T12:00:00Z")
+        FounderStackDecision(text="   ", reason="r", actor="founder", at="2026-10-06T12:00:00Z")
 
 
 def test_decision_not_allowed_on_not_applicable():
-    d = FounderStackDecision(text="x", actor="founder", at="2026-10-06T12:00:00Z")
+    d = FounderStackDecision(text="x", reason="r", actor="founder", at="2026-10-06T12:00:00Z")
     with pytest.raises(ValidationError):
         StackEntryDisposition(key="cache", status="not_applicable", reason="none", founder_decision=d)
+
+
+def test_blank_reason_rejected():
+    with pytest.raises(ValidationError):
+        FounderStackDecision(text="SQLite", reason="  ", actor="founder", at="2026-10-06T12:00:00Z")
+    with pytest.raises(ValidationError):
+        FounderStackDecision(text="SQLite", actor="founder", at="2026-10-06T12:00:00Z")
+
+
+def test_candidate_options_limits():
+    ok = StackEntryDisposition(key="db", status="research_required", research_brief="Which?", candidate_options=["A", "B", "C"])
+    assert ok.candidate_options == ["A", "B", "C"]
+    for bad in (["A", "B", "C", "D"], ["A", " "], ["A", "a"]):
+        with pytest.raises(ValidationError):
+            StackEntryDisposition(key="db", status="research_required", research_brief="Which?", candidate_options=bad)
+    with pytest.raises(ValidationError):
+        StackEntryDisposition(key="db", status="not_applicable", reason="none", candidate_options=["A"])

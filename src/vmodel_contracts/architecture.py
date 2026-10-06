@@ -119,6 +119,7 @@ class FounderStackDecision(ContractModel):
     """ADDED 0.26.0: the founder's own answer for a research_required slot."""
 
     text: str = Field(min_length=1, max_length=2000)
+    reason: str = Field(min_length=1, max_length=1000, description="One line: why the founder chose this.")
     actor: str = Field(min_length=1, max_length=240)
     at: str = Field(min_length=1, max_length=64)
 
@@ -126,6 +127,8 @@ class FounderStackDecision(ContractModel):
     def text_not_blank(self):
         if not self.text.strip():
             raise ValueError("founder decision text must not be blank")
+        if not self.reason.strip():
+            raise ValueError("founder decision reason must not be blank")
         return self
 
 
@@ -140,6 +143,11 @@ class StackEntryDisposition(ContractModel):
     status: StackEntryStatus
     research_brief: str | None = None
     reason: str | None = None
+    candidate_options: list[str] = Field(
+        default_factory=list,
+        max_length=3,
+        description="ADDED 0.26.0: up to three proposed answers the founder can pick from; the founder may still write their own.",
+    )
     founder_decision: FounderStackDecision | None = Field(
         default=None,
         description="ADDED 0.26.0: the founder's decision for a research_required slot; a decided slot counts as resolved.",
@@ -149,6 +157,12 @@ class StackEntryDisposition(ContractModel):
     def required_explanation(self):
         if self.founder_decision is not None and self.status != StackEntryStatus.RESEARCH_REQUIRED:
             raise ValueError("founder_decision belongs only to research_required")
+        if self.candidate_options and self.status != StackEntryStatus.RESEARCH_REQUIRED:
+            raise ValueError("candidate_options belong only to research_required")
+        if any(not o.strip() for o in self.candidate_options):
+            raise ValueError("candidate_options must not be blank")
+        if len({o.strip().lower() for o in self.candidate_options}) != len(self.candidate_options):
+            raise ValueError("candidate_options must be distinct")
         if self.status == StackEntryStatus.RESEARCH_REQUIRED:
             if not (self.research_brief or "").strip():
                 raise ValueError("research_required entry requires research_brief")
