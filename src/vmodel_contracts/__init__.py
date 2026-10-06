@@ -29,7 +29,7 @@ from .interview import (
 from .conops import (ConceptDecision, ConceptOption, ConOpsDocument, OperationalScenario, StakeholderContext)
 from .needs import StakeholderNeed, StakeholderNeedsSet
 from .requirements import AcceptanceCriterion, MergedRequirement, Priority, Requirement, RequirementKind, RequirementSet
-from .architecture import ArchitectureDecision, ArchitectureOverview, TechnologySelection, ComponentSpec, StackEntry, StackEntryDisposition, StackEntryStatus
+from .architecture import ArchitectureDecision, ArchitectureOverview, TechnologySelection, ComponentSpec, StackEntry, StackEntryDisposition, StackEntryStatus, FounderStackDecision, open_stack_decisions
 from .baseline import BaselineMode, RepositoryManifest, SystemBaseline
 from .spec import (
     BuildMilestone,
@@ -91,7 +91,7 @@ __all__ = [
     "ArchitectureDecision", "TechnologySelection",
     "ArchitectureOverview",
     "ComponentSpec",
-    "StackEntry", "StackEntryDisposition", "StackEntryStatus",
+    "StackEntry", "StackEntryDisposition", "StackEntryStatus", "FounderStackDecision", "open_stack_decisions",
     "BaselineMode", "RepositoryManifest", "SystemBaseline",
     "BuildMilestone",
     "ItemSpec",
