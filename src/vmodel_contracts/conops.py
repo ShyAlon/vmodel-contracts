@@ -41,9 +41,23 @@ class OperationalScenario(ContractModel):
     exceptions: list[str] = Field(
         default_factory=list, description="Operational deviations or failure situations the concept must handle."
     )
+    no_exceptions_reason: str | None = Field(
+        default=None,
+        description="ADDED 0.24.0: why this scenario has no exceptions. Only allowed when exceptions is empty; "
+        "a blank reason is invalid.",
+    )
     source_turns: list[int] = Field(
         min_length=1, description="Interview turns grounding this scenario."
     )
+
+    @model_validator(mode="after")
+    def _reason_matches_exceptions(self) -> "OperationalScenario":
+        if self.no_exceptions_reason is not None:
+            if not self.no_exceptions_reason.strip():
+                raise ValueError("no_exceptions_reason must not be blank")
+            if self.exceptions:
+                raise ValueError("no_exceptions_reason is only allowed when exceptions is empty")
+        return self
 
 
 class ConceptOption(ContractModel):
