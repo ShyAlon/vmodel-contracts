@@ -115,6 +115,20 @@ class StackEntryStatus(str, Enum):
     NOT_APPLICABLE = "not_applicable"
 
 
+class FounderStackDecision(ContractModel):
+    """ADDED 0.26.0: the founder's own answer for a research_required slot."""
+
+    text: str = Field(min_length=1, max_length=2000)
+    actor: str = Field(min_length=1, max_length=240)
+    at: str = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def text_not_blank(self):
+        if not self.text.strip():
+            raise ValueError("founder decision text must not be blank")
+        return self
+
+
 class StackEntryDisposition(ContractModel):
     """A considered stack slot that is deliberately not a technology choice.
 
@@ -126,9 +140,15 @@ class StackEntryDisposition(ContractModel):
     status: StackEntryStatus
     research_brief: str | None = None
     reason: str | None = None
+    founder_decision: FounderStackDecision | None = Field(
+        default=None,
+        description="ADDED 0.26.0: the founder's decision for a research_required slot; a decided slot counts as resolved.",
+    )
 
     @model_validator(mode="after")
     def required_explanation(self):
+        if self.founder_decision is not None and self.status != StackEntryStatus.RESEARCH_REQUIRED:
+            raise ValueError("founder_decision belongs only to research_required")
         if self.status == StackEntryStatus.RESEARCH_REQUIRED:
             if not (self.research_brief or "").strip():
                 raise ValueError("research_required entry requires research_brief")
@@ -209,3 +229,11 @@ class ArchitectureOverview(ContractModel):
         return self
 
 
+
+
+def open_stack_decisions(architecture: "ArchitectureOverview") -> list[StackEntryDisposition]:
+    """research_required slots the founder has not decided yet."""
+    return [
+        d for d in architecture.stack_entry_dispositions
+        if d.status == StackEntryStatus.RESEARCH_REQUIRED and d.founder_decision is None
+    ]
