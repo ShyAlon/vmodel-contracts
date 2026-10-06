@@ -9,7 +9,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, computed_field, model_validator
 
 from .base import ContractModel
 
@@ -82,6 +82,19 @@ class StageTokenUsage(ContractModel):
     price_per_mtok_completion_usd: float | None
     ts: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+    @model_validator(mode="before")
+    @classmethod
+    def _drop_serialized_cost(cls, data):
+        # cost_usd is derived. Rows written since 0.27.0 carry it, rows before do
+        # not; both must load, and the stored value is never trusted over the prices.
+        if isinstance(data, dict) and "cost_usd" in data:
+            data = {k: v for k, v in data.items() if k != "cost_usd"}
+        return data
+
+    @computed_field(description=(
+        "ADDED 0.27.0: tokens x the versioned price table, in USD; null when the call has no "
+        "published price. An upper-bound estimate: cache-hit pricing (cached_tokens) and "
+        "off-peak discounts are not applied."))
     @property
     def cost_usd(self) -> float | None:
         if self.price_per_mtok_prompt_usd is None or self.price_per_mtok_completion_usd is None:
@@ -103,3 +116,41 @@ class RunCostReport(ContractModel):
         default=0.0, description="Wall time spent in deterministic stages (test execution, AST, embeddings)."
     )
     llm_call_count: int
+
+
+def _row_cost(row: dict) -> float | None:
+    pin, pout = row.get("price_per_mtok_prompt_usd"), row.get("price_per_mtok_completion_usd")
+    if pin is None or pout is None:
+        return None
+    return (int(row.get("prompt_tokens") or 0) * float(pin)
+            + int(row.get("completion_tokens") or 0) * float(pout)) / 1_000_000
+
+
+def cost_rollup(rows) -> dict:
+    """Aggregate usage rows (StageTokenUsage or their dicts) into one internal
+    cost report: totals plus by stage, provider and model. Cost is recomputed from
+    each row's recorded prices, so old rows without cost_usd aggregate the same.
+    Unpriced calls are counted, never costed as $0. The figure is tokens x the
+    price table: an upper bound (no cache-hit or off-peak pricing)."""
+    def blank():
+        return {"calls": 0, "unpriced_calls": 0, "prompt_tokens": 0, "completion_tokens": 0,
+                "cached_tokens": 0, "cost_usd": 0.0}
+    total, by = blank(), {"stage": {}, "provider": {}, "model": {}}
+    for row in rows:
+        row = row.model_dump() if hasattr(row, "model_dump") else dict(row)
+        cost = _row_cost(row)
+        for bucket in (total, *(by[k].setdefault(str(row.get(k) or "unknown"), blank())
+                                for k in by)):
+            bucket["calls"] += 1
+            bucket["prompt_tokens"] += int(row.get("prompt_tokens") or 0)
+            bucket["completion_tokens"] += int(row.get("completion_tokens") or 0)
+            bucket["cached_tokens"] += int(row.get("cached_tokens") or 0)
+            if cost is None:
+                bucket["unpriced_calls"] += 1
+            else:
+                bucket["cost_usd"] += cost
+    for bucket in (total, *(b for d in by.values() for b in d.values())):
+        bucket["cost_usd"] = round(bucket["cost_usd"], 8)
+    return {"price_table_version": PRICE_TABLE_VERSION,
+            "basis": "tokens x versioned price table; upper bound, no cache-hit or off-peak pricing",
+            **total, **{f"by_{k}": v for k, v in by.items()}}
