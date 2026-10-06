@@ -31,7 +31,7 @@ def _payload():
 
 def test_conops_round_trip_and_version_stamp():
     doc = ConOpsDocument.model_validate(_payload())
-    assert doc.contract_version == CONTRACT_VERSION == "0.23.0"
+    assert doc.contract_version == CONTRACT_VERSION == "0.24.0"
     assert doc.decision.selected_concept == "Native app"
     assert ConOpsDocument.model_validate(doc.model_dump()).operational_scenarios[0].scenario_id == "OS-1"
 
@@ -62,3 +62,22 @@ def test_migrate_014_conops_adds_canonical_ids(tmp_path):
     assert migrate_file(p)==0
     out=json.loads(p.read_text())
     assert out["decision"]["selected_concept_id"]=="concept:native-app"
+
+
+def _scenario(**kw):
+    from vmodel_contracts import OperationalScenario
+    base = dict(scenario_id="OS-1", name="Log habit", trigger="habit done", actors=["runner"],
+                operational_flow=["open app", "tap habit"], success_outcome="points sync", source_turns=[0])
+    return OperationalScenario.model_validate({**base, **kw})
+
+
+def test_scenario_no_exceptions_reason_is_optional_and_only_valid_when_exceptions_empty():
+    import pytest
+    assert _scenario().no_exceptions_reason is None
+    assert _scenario(exceptions=["offline"]).no_exceptions_reason is None
+    ok = _scenario(exceptions=[], no_exceptions_reason="Read-only view; nothing can fail for the user.")
+    assert ok.no_exceptions_reason.startswith("Read-only")
+    with pytest.raises(ValueError):
+        _scenario(exceptions=[], no_exceptions_reason="   ")
+    with pytest.raises(ValueError):
+        _scenario(exceptions=["offline"], no_exceptions_reason="none")

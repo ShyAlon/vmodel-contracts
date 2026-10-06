@@ -13,7 +13,7 @@ def test_existing_baseline_round_trip_and_version_stamp():
     b = SystemBaseline(baseline_id="vmodel-six-repos-2026-09", system_name="V-model", mode="existing",
                        repositories=[repo()], immutable_decisions=["Modules exchange only vmodel-contracts payloads"])
     assert b.mode is BaselineMode.EXISTING
-    assert b.repositories[0].contract_version == "0.23.0"
+    assert b.repositories[0].contract_version == "0.24.0"
     assert SystemBaseline.model_validate_json(b.model_dump_json()) == b
 
 
