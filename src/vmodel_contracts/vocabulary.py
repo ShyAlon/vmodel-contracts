@@ -23,6 +23,7 @@ class PipelineStage(str, Enum):
     ARCHITECTURE = "architecture"
     ITEMS = "items"
     TESTS = "tests"
+    VALIDATION = "validation"
     REVIEW = "review"
     ASSEMBLE = "assemble"
     VERIFICATION = "verification"
@@ -43,6 +44,7 @@ STAGE_LABELS: dict[PipelineStage, str] = {
     PipelineStage.ARCHITECTURE: "Architecture",
     PipelineStage.ITEMS: "Item Specifications",
     PipelineStage.TESTS: "Acceptance Tests",
+    PipelineStage.VALIDATION: "Validation",
     PipelineStage.REVIEW: "Review",
     PipelineStage.ASSEMBLE: "Assembly",
     PipelineStage.VERIFICATION: "Verification",
@@ -59,6 +61,7 @@ class ArtifactName(str, Enum):
     ARCHITECTURE = "architecture.json"
     ITEMS = "items.json"
     TESTS = "tests.json"
+    VALIDATION = "validation.json"
     MANIFEST = "manifest.json"
     TRACEABILITY = "traceability.json"
 
@@ -72,6 +75,7 @@ ARTIFACT_LABELS: dict[ArtifactName, str] = {
     ArtifactName.ARCHITECTURE: "Architecture",
     ArtifactName.ITEMS: "Item Specifications",
     ArtifactName.TESTS: "Acceptance Tests",
+    ArtifactName.VALIDATION: "Validation",
     ArtifactName.MANIFEST: "Manifest",
     ArtifactName.TRACEABILITY: "Traceability Matrix",
 }
