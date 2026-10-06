@@ -4,6 +4,9 @@ from typing import Literal
 from pydantic import Field,model_validator
 from .semantic_review import ReviewModel
 
+STAGE_ORDER=('srs','architecture','items','tests','validation','handoff')
+Stage=Literal['srs','architecture','items','tests','validation','handoff']
+
 class FounderResolutionEntry(ReviewModel):
     """One resolution of an open input. Entries are only ever appended; the item's own
     status/decision/reason always mirror the latest entry."""
@@ -24,6 +27,8 @@ class FounderDecision(ReviewModel):
     source:str=Field(min_length=1,max_length=1000)
     source_turns:list[int]=Field(default_factory=list)
     blocks:list[str]=Field(default_factory=list)
+    blocked_stages:list[Stage]=Field(default_factory=list,description="ADDED 0.25.0: pipeline stages that may not start while this input is unresolved. Empty keeps the older behavior: only the final handoff is blocked by `blocks`.")
+    decision_required:bool=Field(default=False,description="ADDED 0.25.0: true when a deferral does not resolve this input; the founder must decide it.")
     decision:str|None=None
     reason:str|None=None
     history:list[FounderResolutionEntry]=Field(default_factory=list,max_length=1000)
@@ -75,7 +80,22 @@ def apply_resolutions(register:FounderRegister,resolutions:list[dict],actor:str,
         resolution=FounderInputResolution.model_validate(raw)
         if resolution.item_id in seen or resolution.item_id not in known:raise ValueError('unknown or repeated founder input')
         seen.add(resolution.item_id);item=known[resolution.item_id]
+        if item.get('decision_required') and resolution.status=='deferred':raise ValueError('this input must be decided; deferring it does not resolve it')
         if item.get('blocks') and not resolution.reason:raise ValueError('a reason is required when the input blocks later work')
         entry={'at':at,'actor':actor,'status':resolution.status,'decision':resolution.decision,'reason':resolution.reason,'owner_before':item['owner']}
         item.update(status=resolution.status,decision=resolution.decision,reason=resolution.reason,owner=actor,history=[*item.get('history',[]),entry])
     return FounderRegister.model_validate(values)
+
+
+def unresolved_before(register:FounderRegister,stage:str)->list[FounderDecision]:
+    """Inputs that must be resolved before `stage` may start.
+
+    An input counts when it blocks `stage` or any earlier stage and is still open,
+    or deferred while a decision is required. Inputs with no blocked_stages never
+    stop a stage (they only block the final handoff).
+    """
+    if stage not in STAGE_ORDER:raise ValueError(f'unknown stage {stage!r}')
+    limit=STAGE_ORDER.index(stage)
+    def pending(x:FounderDecision)->bool:
+        return x.status=='open' or (x.status=='deferred' and x.decision_required)
+    return [x for x in register.items if pending(x) and any(STAGE_ORDER.index(s)<=limit for s in x.blocked_stages)]
