@@ -42,3 +42,53 @@ def test_operator_override_file_wins(tmp_path, monkeypatch):
 
 def test_table_is_versioned():
     assert PRICE_TABLE_VERSION and isinstance(PRICE_TABLE_VERSION, str)
+
+
+def _row(**kw):
+    from vmodel_contracts import StageTokenUsage
+    base = dict(session_id="s", stage="srs", provider="deepseek", model="deepseek-flash",
+                prompt_tokens=1_000_000, completion_tokens=500_000,
+                price_per_mtok_prompt_usd=0.30, price_per_mtok_completion_usd=1.20)
+    return StageTokenUsage(**{**base, **kw})
+
+
+def test_usage_row_carries_cost_and_round_trips():
+    from vmodel_contracts import StageTokenUsage
+    row = _row()
+    data = json.loads(row.model_dump_json())
+    assert data["cost_usd"] == pytest.approx(0.90)
+    assert StageTokenUsage.model_validate(data).cost_usd == pytest.approx(0.90)
+
+
+def test_unpriced_row_cost_is_null_not_zero():
+    row = _row(price_per_mtok_prompt_usd=None, price_per_mtok_completion_usd=None)
+    assert json.loads(row.model_dump_json())["cost_usd"] is None
+
+
+def test_row_written_before_cost_field_still_loads():
+    from vmodel_contracts import StageTokenUsage
+    data = json.loads(_row().model_dump_json())
+    del data["cost_usd"]
+    assert StageTokenUsage.model_validate(data).cost_usd == pytest.approx(0.90)
+
+
+def test_stored_cost_is_never_trusted_over_prices():
+    from vmodel_contracts import StageTokenUsage
+    data = json.loads(_row().model_dump_json())
+    data["cost_usd"] = 99.0
+    assert StageTokenUsage.model_validate(data).cost_usd == pytest.approx(0.90)
+
+
+def test_cost_rollup_totals_groups_and_unpriced():
+    from vmodel_contracts import cost_rollup
+    rows = [_row(), _row(stage="needs"),
+            _row(stage="needs", model="mystery", price_per_mtok_prompt_usd=None,
+                 price_per_mtok_completion_usd=None)]
+    old = json.loads(rows[0].model_dump_json()); del old["cost_usd"]
+    report = cost_rollup([rows[0], rows[1], rows[2], old])
+    assert report["calls"] == 4 and report["unpriced_calls"] == 1
+    assert report["cost_usd"] == pytest.approx(2.70)
+    assert report["by_stage"]["needs"]["calls"] == 2
+    assert report["by_stage"]["needs"]["unpriced_calls"] == 1
+    assert report["by_model"]["mystery"]["cost_usd"] == 0.0
+    assert report["price_table_version"] == PRICE_TABLE_VERSION
