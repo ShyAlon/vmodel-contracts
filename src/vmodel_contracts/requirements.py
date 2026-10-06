@@ -37,6 +37,16 @@ class AcceptanceCriterion(ContractModel):
     )
 
 
+class MergedRequirement(ContractModel):
+    """Provenance of an automatic near-duplicate merge: what was absorbed and why."""
+
+    requirement_id: str = Field(pattern=r"^R-\d+$", description="The absorbed requirement's id.")
+    title: str
+    statement: str
+    score: float = Field(description="Content-word overlap that triggered the merge.")
+    rule: str = Field(default="srs.duplicate_requirement", description="The check that merged it.")
+
+
 class Requirement(ContractModel):
     requirement_id: str = Field(pattern=r"^R-\d+$")
     title: str
@@ -49,6 +59,11 @@ class Requirement(ContractModel):
         description="IntentModel fields this requirement traces to (root of the traceability chain)."
     )
     source_turns: list[int] = Field(default_factory=list)
+    merged_from: list[MergedRequirement] = Field(
+        default_factory=list,
+        description="ADDED 0.23.0: requirements automatically absorbed into this one as near-duplicates, "
+        "with their original wording and the score. Empty for an unmerged requirement.",
+    )
 
 
 class RequirementSet(ContractModel):

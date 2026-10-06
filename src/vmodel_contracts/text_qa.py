@@ -195,3 +195,118 @@ def srs_draft_findings(draft: dict, interview_text: str) -> list[dict]:
                             "location":f"{rid} field {field}","span":token})
     return findings
 
+
+
+# --- Requirement near-duplicates (SRS) ---------------------------------------------------------
+# Calibrated on one real session (22 requirements, 231 pairs): wording differs while meaning is the
+# same, so word-shingle Jaccard scores such pairs near 0.1. Stemmed content-word overlap puts the
+# known duplicates at 0.43-0.52. Constants are named so they are easy to retune.
+REQ_MERGE_THRESHOLD = 0.90   # at or above: merged automatically, with provenance
+REQ_REVIEW_THRESHOLD = 0.40  # at or above (below merge): open finding, the founder decides
+
+_REQ_FUNCTION_WORDS = {
+    "the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "with", "by", "is", "are", "be", "shall",
+    "app", "that", "it", "its", "as", "at", "from", "any", "all", "every", "each", "when", "no", "not", "so",
+    "this", "which", "can", "into", "than", "then",
+}
+
+
+def _stem(word: str) -> str:
+    for suffix in ("ing", "ed", "es", "s", "ly"):
+        if word.endswith(suffix) and len(word) - len(suffix) >= 4:
+            return word[: -len(suffix)]
+    return word
+
+
+def _requirement_words(requirement: dict) -> set[str]:
+    text = f"{requirement.get('title') or ''} {requirement.get('statement') or ''}".lower()
+    return {_stem(w) for w in re.findall(r"[a-z]{3,}", text) if w not in _REQ_FUNCTION_WORDS}
+
+
+def requirement_similarity(a: dict, b: dict) -> float | None:
+    """Overlap coefficient of stemmed content words over title + statement.
+    None when either requirement has no comparable text (the caller records a finding, not a pass)."""
+    wa, wb = _requirement_words(a), _requirement_words(b)
+    if not wa or not wb:
+        return None
+    return len(wa & wb) / min(len(wa), len(wb))
+
+
+def duplicate_requirement_pairs(requirements: list[dict]) -> dict:
+    """Compare every pair. Returns {'merge': [...], 'review': [...], 'uncomparable': [...]}; each pair is
+    {'a': id, 'b': id, 'score': float}. 'uncomparable' lists ids with no comparable text."""
+    out: dict = {"merge": [], "review": [], "uncomparable": []}
+    bad = [str(r.get("requirement_id") or "?") for r in requirements if not _requirement_words(r)]
+    out["uncomparable"] = bad
+    for i, a in enumerate(requirements):
+        for b in requirements[i + 1:]:
+            score = requirement_similarity(a, b)
+            if score is None:
+                continue
+            pair = {"a": str(a.get("requirement_id")), "b": str(b.get("requirement_id")), "score": round(score, 3)}
+            if score >= REQ_MERGE_THRESHOLD:
+                out["merge"].append(pair)
+            elif score >= REQ_REVIEW_THRESHOLD:
+                out["review"].append(pair)
+    out["merge"].sort(key=lambda p: -p["score"]); out["review"].sort(key=lambda p: -p["score"])
+    return out
+
+
+def merge_duplicate_requirements(requirements: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Collapse requirements at or above REQ_MERGE_THRESHOLD. The first (in list order) survives;
+    need_ids, intent_fields, source_turns and acceptance criteria are unioned (criteria deduplicated by
+    normalized statement) and each absorbed requirement is recorded on the survivor's `merged_from`.
+    Returns (requirements, merges); the input is not mutated. Never merges across kind."""
+    kept: list[dict] = [dict(r) for r in requirements]
+    merges: list[dict] = []
+    absorbed: set[int] = set()
+    for i, survivor in enumerate(kept):
+        if i in absorbed:
+            continue
+        for j in range(i + 1, len(kept)):
+            other = kept[j]
+            if j in absorbed or survivor.get("kind") != other.get("kind"):
+                continue
+            score = requirement_similarity(survivor, other)
+            if score is None or score < REQ_MERGE_THRESHOLD:
+                continue
+            absorbed.add(j)
+            for key in ("need_ids", "intent_fields", "source_turns"):
+                survivor[key] = list(dict.fromkeys([*(survivor.get(key) or []), *(other.get(key) or [])]))
+            seen = {" ".join(str(c.get("statement") or "").lower().split()) for c in survivor.get("acceptance") or []}
+            criteria = list(survivor.get("acceptance") or [])
+            for criterion in other.get("acceptance") or []:
+                norm = " ".join(str(criterion.get("statement") or "").lower().split())
+                if norm not in seen:
+                    seen.add(norm); criteria.append(criterion)
+            survivor["acceptance"] = criteria
+            record = {"requirement_id": str(other.get("requirement_id")), "title": str(other.get("title") or ""),
+                      "statement": str(other.get("statement") or ""), "score": round(score, 3),
+                      "rule": "srs.duplicate_requirement"}
+            survivor["merged_from"] = [*(survivor.get("merged_from") or []), record, *(other.get("merged_from") or [])]
+            merges.append({"survivor": str(survivor.get("requirement_id")), **record})
+    return [r for i, r in enumerate(kept) if i not in absorbed], merges
+
+
+# --- Provenance lint ----------------------------------------------------------------------------
+_TURN_TAG_RE = re.compile(r"[\(\[]\s*(?:source\s+)?turns?\s*\d+(?:\s*[-,&]\s*\d+)*\s*[\)\]]|\bsource[_ ]turns?\s*[:=]\s*\[?\d+", re.IGNORECASE)
+
+
+def turn_tag_findings(text: str, location: str = "") -> list[dict]:
+    """Transcript-turn markers such as '(turn 2)' belong in source_turns fields, not in founder-facing prose."""
+    return [{"kind": "provenance", "rule": "provenance.turn_tag", "location": location, "span": m.group(0)}
+            for m in _TURN_TAG_RE.finditer(text or "")]
+
+
+def reference_name_findings(text: str, names: list[str], location: str = "") -> list[dict]:
+    """Working titles, competitors and reference products (IntentModel.reference_names) must not appear in
+    spec prose. Case-insensitive whole-word match; a name with no letters or digits is skipped."""
+    findings = []
+    for name in dict.fromkeys(n.strip() for n in names if n and n.strip()):
+        if not re.search(r"[A-Za-z0-9]", name):
+            continue
+        pattern = r"(?<![A-Za-z0-9])" + r"\s+".join(re.escape(part) for part in name.split()) + r"(?![A-Za-z0-9])"
+        for m in re.finditer(pattern, text or "", re.IGNORECASE):
+            findings.append({"kind": "provenance", "rule": "provenance.reference_name",
+                             "location": location, "span": m.group(0)})
+    return findings
