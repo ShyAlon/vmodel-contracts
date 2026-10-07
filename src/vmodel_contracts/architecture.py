@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Literal
 
 from pydantic import Field, model_validator
 
@@ -121,7 +122,7 @@ class FounderStackDecision(ContractModel):
     """ADDED 0.26.0: the founder's own answer for a research_required slot."""
 
     text: str = Field(min_length=1, max_length=2000)
-    reason: str = Field(min_length=1, max_length=1000, description="One line: why the founder chose this.")
+    reason: str = Field(default="", max_length=1000, description="Optional founder explanation; never fabricated from system rationale.")
     actor: str = Field(min_length=1, max_length=240)
     at: str = Field(min_length=1, max_length=64)
 
@@ -129,9 +130,41 @@ class FounderStackDecision(ContractModel):
     def text_not_blank(self):
         if not self.text.strip():
             raise ValueError("founder decision text must not be blank")
-        if not self.reason.strip():
-            raise ValueError("founder decision reason must not be blank")
         return self
+
+
+class TechnicalChoiceOption(ContractModel):
+    value: str = Field(min_length=1, max_length=200)
+    label: str = Field(min_length=1, max_length=160)
+    implication: str = Field(min_length=1, max_length=400)
+
+
+class TechnicalChoiceFraming(ContractModel):
+    """Proposed design, not a founder answer or verified vendor research."""
+    title: str = Field(min_length=1, max_length=100)
+    purpose: str = Field(min_length=1, max_length=300)
+    default_value: str = Field(min_length=1, max_length=200)
+    reason: str = Field(min_length=1, max_length=400)
+    requirement_ids: list[str] = Field(min_length=1)
+    options: list[TechnicalChoiceOption] = Field(min_length=2, max_length=3)
+    provenance: Literal["design_proposal"] = "design_proposal"
+    research_status: Literal["pending"] = "pending"
+
+    @model_validator(mode="after")
+    def coherent(self):
+        values = [o.value.strip() for o in self.options]
+        if len(set(values)) != len(values) or self.default_value not in values:
+            raise ValueError("technical default must name one distinct option")
+        for text in [self.title, self.purpose, self.default_value, self.reason, *self.requirement_ids,
+                     *[t for o in self.options for t in (o.value, o.label, o.implication)]]:
+            if not text.strip():
+                raise ValueError("technical choice text must not be blank")
+        return self
+
+
+class SystemStackSelection(ContractModel):
+    value: str = Field(min_length=1, max_length=200)
+    source: Literal["architecture_default"] = "architecture_default"
 
 
 class StackEntryDisposition(ContractModel):
@@ -150,6 +183,8 @@ class StackEntryDisposition(ContractModel):
         max_length=3,
         description="ADDED 0.26.0: up to three proposed answers the founder can pick from; the founder may still write their own.",
     )
+    technical_choice: TechnicalChoiceFraming | None = None
+    system_selection: SystemStackSelection | None = None
     founder_decision: FounderStackDecision | None = Field(
         default=None,
         description="ADDED 0.26.0: the founder's decision for a research_required slot; a decided slot counts as resolved.",
@@ -157,6 +192,10 @@ class StackEntryDisposition(ContractModel):
 
     @model_validator(mode="after")
     def required_explanation(self):
+        if (self.technical_choice or self.system_selection) and self.status != StackEntryStatus.RESEARCH_REQUIRED:
+            raise ValueError("technical choice belongs only to research_required")
+        if self.system_selection and (not self.technical_choice or self.system_selection.value != self.technical_choice.default_value):
+            raise ValueError("system selection must match the displayed architecture default")
         if self.founder_decision is not None and self.status != StackEntryStatus.RESEARCH_REQUIRED:
             raise ValueError("founder_decision belongs only to research_required")
         if self.candidate_options and self.status != StackEntryStatus.RESEARCH_REQUIRED:
@@ -248,8 +287,16 @@ class ArchitectureOverview(ContractModel):
 
 
 def open_stack_decisions(architecture: "ArchitectureOverview") -> list[StackEntryDisposition]:
-    """research_required slots the founder has not decided yet."""
+    """Slots with neither an explicit founder answer nor a usable design default."""
     return [
         d for d in architecture.stack_entry_dispositions
-        if d.status == StackEntryStatus.RESEARCH_REQUIRED and d.founder_decision is None
+        if d.status == StackEntryStatus.RESEARCH_REQUIRED and d.founder_decision is None and d.technical_choice is None
     ]
+
+
+def technical_choice_data(value: dict, requirement_ids: list[str]) -> dict:
+    """Validate producer framing against real requirement ids, not model-invented ids."""
+    framing = TechnicalChoiceFraming.model_validate(value)
+    if not set(framing.requirement_ids) <= set(requirement_ids):
+        raise ValueError("technical choice cites unknown requirements")
+    return framing.model_dump(mode="json")

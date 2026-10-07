@@ -34,11 +34,8 @@ def test_decision_not_allowed_on_not_applicable():
         StackEntryDisposition(key="cache", status="not_applicable", reason="none", founder_decision=d)
 
 
-def test_blank_reason_rejected():
-    with pytest.raises(ValidationError):
-        FounderStackDecision(text="SQLite", reason="  ", actor="founder", at="2026-10-06T12:00:00Z")
-    with pytest.raises(ValidationError):
-        FounderStackDecision(text="SQLite", actor="founder", at="2026-10-06T12:00:00Z")
+def test_reason_is_optional():
+    assert FounderStackDecision(text="SQLite", actor="founder", at="2026-10-06T12:00:00Z").reason == ""
 
 
 def test_candidate_options_limits():
