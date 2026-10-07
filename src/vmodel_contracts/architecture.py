@@ -100,6 +100,8 @@ class ArchitectureDecision(ContractModel):
         default_factory=list,
         description="Baseline repository names changed by a migration; required when migration is true.",
     )
+    founder_decision_refs: list[str] = Field(
+        default_factory=list, description="Decided founder-register item ids supporting this ADR; source validation is stage-owned.")
     executes_concept_ids: list[str] = Field(default_factory=list)
     technology_selections: list[TechnologySelection] = Field(default_factory=list)
     rejected: list[str] = Field(
