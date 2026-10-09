@@ -133,19 +133,43 @@ def _http_status_context(text: str, match) -> bool:
     return bool(_STATUS_CUE.search(text[max(0, match.start() - 24):match.start()]))
 
 
-def _in_corpus(token: str, corpus_lower: str) -> bool:
-    """Numbers match as whole numbers ('200' is not found inside '2000'); words match as substrings."""
-    t = token.lower()
-    if re.fullmatch(r"\d+(?:\.\d+)?%?", t):
-        return re.search(r"(?<![\d.])" + re.escape(t.rstrip("%")) + r"(?![\d])", corpus_lower) is not None
-    return t in corpus_lower
+# Deliberately small and reviewable. A common acronym is not a product claim,
+# technology choice, proper name or numeric allowance. Add entries explicitly.
+SRS_COMMON_TERMS = {"url": "Uniform Resource Locator, ordinary web-address vocabulary"}
+
+
+def normalize_comparison_text(text: str) -> str:
+    """Case/spacing and word hyphens only. Never convert numbers or units."""
+    text = re.sub(r"(?<=[A-Za-z])[-\u2010\u2011](?=[A-Za-z])", " ", text.casefold())
+    return " ".join(text.split())
+
+
+_NUMBER = r"[+-]?\d+(?:\.\d+)?"
+_UNIT = r"(?:milliseconds?|ms|seconds?|secs?|s|minutes?|mins?|hours?|hz|fps|kb|mb|gb|bytes?|bits?|pixels?|px|meters?|metres?|feet|inches|cm|mm|km|m|kg|grams?|percent|%)"
+_QUANTITY = re.compile(r"(?<![\w.])(" + _NUMBER + r")\s*(" + _UNIT + r")(?![\w])", re.I)
+
+
+def _in_corpus(token: str, corpus: str, *, text: str = "", start: int = 0) -> bool:
+    """Whole numeric values and attached units stay exact, including decimals.
+
+    200 ms is not grounded by 200 seconds, 2000, 200.5 or 0.2 s. Case and
+    whitespace may differ; unit aliases/conversions are intentionally not made.
+    """
+    if re.fullmatch(r"[+-]?\d+(?:\.\d+)?%?", token):
+        quantity = _QUANTITY.match(text, start) if text else None
+        if quantity:
+            number, unit = quantity.groups()
+            return any(m.group(1) == number and m.group(2).casefold() == unit.casefold()
+                       for m in _QUANTITY.finditer(corpus))
+        return re.search(r"(?<![\w.+-])" + re.escape(token) + r"(?![\w%]|\.\d)", corpus) is not None
+    return normalize_comparison_text(token) in corpus
 
 
 def _invention_candidate(token: str, field: str, text: str, start: int) -> bool:
     """Would an unsupported `token` be a signal of an invented detail? Ordinary Title Case words in
     a title ('Required', 'Capability') are not: titles capitalize every word. Numbers, acronyms,
     CamelCase / digit-bearing names, and capitalized words in running text still are."""
-    if re.fullmatch(r"\d+(?:\.\d+)?%?", token):
+    if re.fullmatch(r"[+-]?\d+(?:\.\d+)?%?", token):
         return True
     if field != "title":
         return True
@@ -156,7 +180,7 @@ def srs_draft_findings(draft: dict, interview_text: str) -> list[dict]:
     """Find binding solution language, inventions, and non-EARS requirements.
     `interview_text` is every source the founder's meaning lives in (intent model, needs, concept of operations)."""
     findings = []
-    source_lower = interview_text.lower()
+    source_lower = normalize_comparison_text(interview_text)
     common_sentence_words = {"each", "upon", "management", "resolution", "when", "while", "if", "then",
                              "where", "after", "before", "the", "system", "user", "users"}
     exemplar = re.compile(r"\b(?:like|such as|e\.g\.|for example)\b", re.I)
@@ -185,12 +209,14 @@ def srs_draft_findings(draft: dict, interview_text: str) -> list[dict]:
                         if key not in seen:
                             seen.add(key); findings.append({"kind":"solution_language","rule":rule,
                                 "location":f"{rid} field {field}","span":span})
-                for match in re.finditer(r"\b\d+(?:\.\d+)?%?\b|\b[A-Z][A-Za-z0-9-]{2,}\b", text):
+                for match in re.finditer(r"(?<![\w.])[+-]?\d+(?:\.\d+)?%?(?!\d|\.\d)|\b[A-Z][A-Za-z0-9-]{2,}\b", text):
                     token=match.group(0); lower=token.lower()
                     sentence_initial = match.start()==0 or text[max(0,match.start()-2):match.start()].endswith(". ")
                     if lower in common_sentence_words or (sentence_initial and lower.isalpha() and lower not in source_lower):
                         continue
-                    if not _in_corpus(token, source_lower) and _invention_candidate(token, field, text, match.start()):
+                    if lower in SRS_COMMON_TERMS:
+                        continue
+                    if not _in_corpus(token, source_lower, text=text, start=match.start()) and _invention_candidate(token, field, text, match.start()):
                         findings.append({"kind":"potential_invention","rule":"absent_from_interview",
                             "location":f"{rid} field {field}","span":token})
     return findings
