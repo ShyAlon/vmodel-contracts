@@ -33,6 +33,8 @@ class EventType(IntEnum):
     RUN_COMPLETED = 60
     RUN_FAILED = 61
     HEARTBEAT = 70
+    STOP_REQUESTED = 71
+    RUN_STOPPED = 72
 
 
 class InputKind(IntEnum):
@@ -48,6 +50,8 @@ class ProcessStatus(IntEnum):
     COMPLETED = 40
     FAILED = 50
     INCOMPATIBLE = 60
+    STOP_REQUESTED = 70
+    STOPPED = 80
 
 
 class NextStep(IntEnum):
@@ -163,6 +167,13 @@ class InteractiveEvent(InteractiveModel):
             raise ValueError("route-change events require route_change payload")
         if self.event_type == EventType.RUN_FAILED and self.failure is None:
             raise ValueError("run-failed events require failure")
+        if self.process_status in (ProcessStatus.STOP_REQUESTED,ProcessStatus.STOPPED):
+            if self.next_step != NextStep.STOP or self.input_request is not None:
+                raise ValueError("stopped control requires STOP and no input")
+        if self.event_type == EventType.STOP_REQUESTED and self.process_status != ProcessStatus.STOP_REQUESTED:
+            raise ValueError("stop-requested event requires STOP_REQUESTED status")
+        if self.event_type == EventType.RUN_STOPPED and self.process_status != ProcessStatus.STOPPED:
+            raise ValueError("run-stopped event requires STOPPED status")
         return self
 
 
@@ -178,6 +189,14 @@ class EngineSnapshot(InteractiveModel):
     model_map: dict[str, tuple[str, str]] | None = None
     route_version: int = 0
     route_history: list[RouteChangePayload] = Field(default_factory=list)
+
+
+    @model_validator(mode="after")
+    def validate_stopped_snapshot(self):
+        if self.process_status in (ProcessStatus.STOP_REQUESTED,ProcessStatus.STOPPED):
+            if self.next_step != NextStep.STOP or self.open_input is not None:
+                raise ValueError("stopped snapshot requires STOP and no open input")
+        return self
 
 
 class StartSessionRequest(InteractiveModel):
