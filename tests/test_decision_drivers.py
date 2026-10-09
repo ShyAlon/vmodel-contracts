@@ -55,10 +55,12 @@ def test_migrate_refuses_pre_identity_architecture(tmp_path):
     before=p.read_text(); assert migrate_file(p)==1; assert p.read_text()==before
 
 
-def test_additive_founder_refs_preserve_027_payload_compatibility():
+def test_additive_founder_refs_preserve_current_minor_payload_shape():
     from vmodel_contracts import ArchitectureDecision, check_compatible
-    check_compatible({'contract_version':'0.27.0'})
-    old=ArchitectureDecision.model_validate({'contract_version':'0.27.0','decision_id':'ADR-1','title':'Old','decision':'Use a simple store','rationale':'Small scope','driver':'simplicity','options_considered':[]})
+    from vmodel_contracts import ContractVersionMismatch
+    with pytest.raises(ContractVersionMismatch):check_compatible({'contract_version':'0.27.0'})
+    check_compatible({'contract_version':'0.28.0'})
+    old=ArchitectureDecision.model_validate({'contract_version':'0.28.0','decision_id':'ADR-1','title':'Old','decision':'Use a simple store','rationale':'Small scope','driver':'simplicity','options_considered':[]})
     assert old.founder_decision_refs==[]
     new=ArchitectureDecision.model_validate({**old.model_dump(mode='json'),'founder_decision_refs':['FD-error']})
     assert new.founder_decision_refs==['FD-error']
