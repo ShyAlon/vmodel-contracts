@@ -5,12 +5,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from . import intake, interview, conops, requirements, spec, verification, delivery, telemetry, baseline, facets, semantic_review, founder_register, handoff, interactive
+from . import intake, interview, conops, requirements, spec, verification, delivery, telemetry, baseline, facets, semantic_review, founder_register, handoff, interactive, citations
 from .base import ContractModel
 from .semantic_review import ReviewModel
 from .interactive import InteractiveModel
 
-_MODULES = [intake, interview, conops, requirements, spec, verification, delivery, telemetry, baseline, facets, semantic_review, founder_register, handoff, interactive]
+_MODULES = [intake, interview, conops, requirements, spec, verification, delivery, telemetry, baseline, facets, semantic_review, founder_register, handoff, interactive, citations]
 
 
 def all_models() -> dict[str, type[ContractModel]]:

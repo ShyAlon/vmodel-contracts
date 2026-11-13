@@ -29,6 +29,7 @@ from .interview import (
 from .conops import (ConceptDecision, ConceptOption, ConOpsDocument, OperationalScenario, StakeholderContext)
 from .needs import StakeholderNeed, StakeholderNeedsSet
 from .requirements import AcceptanceCriterion, MergedRequirement, Priority, Requirement, RequirementKind, RequirementSet
+from .citations import FounderDecisionCitation
 from .architecture import ArchitectureDecision, ArchitectureOverview, TechnologySelection, ComponentSpec, StackEntry, StackEntryDisposition, StackEntryStatus, FounderStackDecision, open_stack_decisions
 from .baseline import BaselineMode, RepositoryManifest, SystemBaseline
 from .spec import (
@@ -62,6 +63,7 @@ from .runtime import AdaptiveCallWatchdog, AdaptiveWatchdogTimeout, parse_expert
 from . import text_qa
 
 __all__ = [
+    "FounderDecisionCitation",
     "CONTRACT_VERSION", "check_compatible", "ContractVersionMismatch",
     "PipelineStage", "STAGE_LABELS", "CANONICAL_STAGE_IDS", "ArtifactName", "ARTIFACT_LABELS",
     "CONCEPT_OF_OPERATIONS", "CONCEPT_OPTION", "CONCEPT_DECISION",
