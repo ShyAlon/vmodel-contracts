@@ -64,6 +64,9 @@ class TechnologySelection(ContractModel):
             raise ValueError("off_list_justification belongs only to off-list technology")
         return self
 
+from .citations import FounderDecisionCitation
+
+
 class ArchitectureDecision(ContractModel):
     """One ADR, kept short. Rationale is load-bearing; options rejected are
     what stop the coding agent from 'improving' the architecture mid-build.
@@ -103,6 +106,19 @@ class ArchitectureDecision(ContractModel):
     )
     founder_decision_refs: list[str] = Field(
         default_factory=list, description="Decided founder-register item ids supporting this ADR; source validation is stage-owned.")
+    founder_citations: list[FounderDecisionCitation] = Field(
+        default_factory=list,
+        description="Code-owned exact source snapshots. Empty for legacy records; never a semantic-support or founder-architecture-approval verdict.",
+    )
+
+    @model_validator(mode="after")
+    def citation_links_match(self):
+        if self.founder_citations:
+            refs = [c.source_ref for c in self.founder_citations]
+            if len(set(refs)) != len(refs) or set(refs) != set(self.founder_decision_refs):
+                raise ValueError("citation snapshots must match founder_decision_refs exactly without duplicates")
+        return self
+
     executes_concept_ids: list[str] = Field(default_factory=list)
     technology_selections: list[TechnologySelection] = Field(default_factory=list)
     rejected: list[str] = Field(

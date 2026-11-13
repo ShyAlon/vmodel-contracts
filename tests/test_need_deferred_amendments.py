@@ -60,4 +60,4 @@ def test_amendment_id_shape_and_duplicates_rejected():
 
 
 def test_contract_version_not_bumped():
-    assert CONTRACT_VERSION == "0.28.0"
+    assert CONTRACT_VERSION == "0.29.0"

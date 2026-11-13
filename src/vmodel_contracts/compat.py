@@ -26,5 +26,9 @@ def check_compatible(payload: dict, expecting: str = CONTRACT_VERSION) -> None:
     have = payload.get("contract_version")
     if not isinstance(have, str):
         raise ContractVersionMismatch(None, expecting)
+    # 0.29 adds optional source snapshots. Read old 0.28 bytes without
+    # inventing quotes or approvals. Older readers must reject the new shape.
+    if _major_minor(expecting) == (0, 29) and _major_minor(have) == (0, 28):
+        return
     if _major_minor(have) != _major_minor(expecting):
         raise ContractVersionMismatch(have, expecting)
